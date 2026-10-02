@@ -1,1298 +1,930 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#1a1f2e">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ExpenseReport">
-<link rel="manifest" href="manifest.json">
-<title>Expense Report Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101418">
+<title>Studio Multitraccia</title>
 <style>
-:root{
-  --bg:#f4f1eb;--surface:#fff;--surface2:#f9f7f3;
-  --ink:#1a1a18;--ink2:#5a5a52;--ink3:#9a9a8e;
-  --accent:#2d5a3d;--accent2:#4a8c60;--accent-light:#e8f3ec;
-  --danger:#c0392b;--danger-light:#fdf0ef;
-  --warn:#d4860a;--warn-light:#fff3e0;
-  --blue:#1d4ed8;--blue-light:#eff6ff;
-  --border:#e2ddd6;--shadow:0 2px 12px rgba(26,26,24,.08);
-  --shadow-lg:0 8px 32px rgba(26,26,24,.12);
-  --radius:12px;--radius-sm:8px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5}
-.app-header{background:var(--ink);color:#fff;padding:0 16px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 16px rgba(0,0,0,.2)}
-.app-header h1{font-family:'DM Serif Display',serif;font-size:1.1rem}
-.header-actions{display:flex;gap:8px;align-items:center}
-.btn-icon{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;white-space:nowrap}
-.btn-icon:hover{background:rgba(255,255,255,.22)}
-.main{max-width:720px;margin:0 auto;padding:16px 14px 82px}
-.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
-.card-title{font-family:'DM Serif Display',serif;font-size:1.05rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.form-row{display:grid;gap:10px;margin-bottom:10px}
-.form-row.c2{grid-template-columns:1fr 1fr}
-.form-row.c3{grid-template-columns:1fr 1fr 1fr}
-.form-group{display:flex;flex-direction:column;gap:4px}
-label{font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
-input,select,textarea{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--surface2);transition:border-color .2s;width:100%}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);background:#fff}
-input::placeholder{color:var(--ink3)}
-.btn{border:none;border-radius:var(--radius-sm);padding:10px 16px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--ink);color:#fff}.btn-primary:hover{background:#333}
-.btn-success{background:var(--accent);color:#fff}.btn-success:hover{background:var(--accent2)}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--ink2)}.btn-outline:hover{border-color:var(--ink2);color:var(--ink)}
-.btn-danger{background:var(--danger-light);color:var(--danger);border:1px solid #f5c6c2}.btn-danger:hover{background:var(--danger);color:#fff}
-.btn-blue{background:var(--blue-light);color:var(--blue);border:1px solid #bfd7ff}.btn-blue:hover{background:var(--blue);color:#fff}
-.btn-sm{padding:6px 10px;font-size:12px}
-.api-banner{background:#fff8e6;border:1.5px solid #f0c060;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:12px}
-.api-banner p{font-size:13px;color:#7a5a00;margin-bottom:8px}
-.api-banner a{color:var(--accent);font-weight:600}
-.api-key-row{display:flex;gap:8px}
-.api-key-row input{flex:1;font-family:monospace;font-size:13px}
-.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative}
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
-.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-icon{width:44px;height:44px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 10px}
-.upload-zone p{color:var(--ink2);font-size:14px}
-.upload-zone small{color:var(--ink3);font-size:12px}
-.ocr-status{margin-top:10px;padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;display:none}
-.ocr-status.processing{background:#e8f0ff;color:#1d4ed8;display:flex;align-items:center;gap:8px}
-.ocr-status.success{background:var(--accent-light);color:var(--accent);display:flex;align-items:center;gap:8px}
-.ocr-status.error{background:var(--danger-light);color:var(--danger);display:flex;align-items:center;gap:8px}
-.spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* BALANCE PANEL */
-.balance-panel{background:var(--ink);color:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px}
-.balance-panel h3{font-family:'DM Serif Display',serif;font-size:1rem;margin-bottom:12px;opacity:.8}
-.balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.balance-item{background:rgba(255,255,255,.08);border-radius:8px;padding:10px 12px}
-.balance-item label{font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:2px;color:#fff}
-.balance-item .val{font-family:'DM Serif Display',serif;font-size:1.1rem}
-.balance-final{border-radius:8px;padding:12px 14px;margin-bottom:10px}
-.balance-final.positive{background:#1a5c30}
-.balance-final.negative{background:#7a1a1a}
-.balance-final.zero{background:rgba(255,255,255,.1)}
-.balance-final .bf-amount{font-family:'DM Serif Display',serif;font-size:1.25rem;margin-bottom:2px}
-.balance-final .bf-note{font-size:12px;opacity:.85;font-style:italic}
-.cur-section{margin-top:8px}
-.cur-section-title{font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.cur-tranche-group{background:rgba(255,255,255,.06);border-radius:6px;padding:8px 10px;margin-bottom:6px}
-.cur-tranche-group .ctg-header{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:4px}
-.tranche-row{display:flex;justify-content:space-between;font-size:11px;opacity:.75;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.06)}
-.tranche-row:last-child{border-bottom:none}
-.tranche-row .tr-rate{opacity:.6;font-size:10px}
-.tranche-row .tr-bal{font-weight:600}
-.tranche-row .tr-bal.depleted{opacity:.4;text-decoration:line-through}
-
-/* MOVEMENT ROWS */
-.expenses-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.expenses-count{font-family:'DM Serif Display',serif;font-size:1.05rem}
-.add-btns{display:flex;gap:6px;flex-wrap:wrap}
-.exp-row{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--border);margin-bottom:7px;background:var(--surface2);cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
-.exp-row:hover,.exp-row:active{border-color:var(--accent);background:var(--accent-light)}
-.exp-row.type-advance{border-left:3px solid #1d9e5c}
-.exp-row.type-exchange{border-left:3px solid #1d4ed8}
-.exp-row.type-expense{border-left:3px solid var(--border)}
-.exp-row.type-expense.free{border-left:3px solid var(--warn)}
-.exp-num{font-size:10px;font-weight:700;color:var(--ink3);min-width:22px;flex-shrink:0}
-.exp-type-badge{font-size:10px;font-weight:700;border-radius:4px;padding:2px 5px;white-space:nowrap;flex-shrink:0}
-.badge-expense{background:#f0f0ea;color:var(--ink2)}
-.badge-advance{background:#d4f5e4;color:#1a6e3c}
-.badge-exchange{background:#dbeafe;color:#1d4ed8}
-.badge-free{background:var(--warn-light);color:var(--warn)}
-.exp-date{font-size:11px;color:var(--ink2);min-width:74px;flex-shrink:0}
-.exp-desc{flex:1;font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.exp-rate{font-size:11px;color:var(--ink3);min-width:56px;text-align:center;flex-shrink:0;font-family:monospace}
-.exp-rcpt{font-size:12px;flex-shrink:0}
-.exp-eur{font-family:'DM Serif Display',serif;font-size:.9rem;min-width:62px;text-align:right;flex-shrink:0}
-.exp-eur.pos{color:#1a6e3c}
-.exp-eur.neg{color:var(--danger)}
-.exp-eur.exc{color:var(--blue)}
-.exp-arrow{color:var(--ink3);font-size:12px;flex-shrink:0}
-
-/* Multi-tranche subtotals in list */
-.exp-multitranche{background:rgba(212,134,10,.08);border:1px solid rgba(212,134,10,.25);border-radius:6px;padding:5px 8px;margin-top:4px;font-size:11px;color:var(--warn)}
-.exp-multitranche .mt-row{display:flex;justify-content:space-between;padding:1px 0}
-
-.empty-state{text-align:center;padding:36px 20px;color:var(--ink3)}
-.empty-state .ei{font-size:2.2rem;margin-bottom:10px}
-.empty-state p{font-size:14px}
-.list-divider{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);padding:8px 4px 4px;margin-bottom:2px}
-
-/* SIGNATURE */
-.sig-wrapper{border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;margin-bottom:10px}
-#sigCanvas{display:block;width:100%;touch-action:none;background:#fff;cursor:crosshair}
-.sig-controls{display:flex;gap:8px;padding:10px;background:var(--surface2)}
-.sig-status{font-size:12px;color:var(--ink3);padding:4px 8px;align-self:center}
-
-/* MODALS */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:none;align-items:center;justify-content:center;padding:12px;overflow-y:auto}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border-radius:var(--radius);max-width:580px;width:100%;padding:20px;box-shadow:var(--shadow-lg);position:relative;margin:auto}
-.modal-title{font-family:'DM Serif Display',serif;font-size:1.1rem;margin-bottom:14px;padding-right:36px}
-.modal-close{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border);color:var(--ink2);border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.modal-close:hover{background:var(--danger-light);color:var(--danger)}
-.receipts-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.rcpt-wrap{position:relative}
-.rcpt-thumb{width:70px;height:70px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);cursor:pointer;display:block}
-.rcpt-del{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.rcpt-add{width:70px;height:70px;border-radius:8px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--ink3);cursor:pointer;background:var(--surface2);position:relative}
-.rcpt-add input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.rcpt-add:hover{border-color:var(--accent);color:var(--accent)}
-.rate-row{display:flex;gap:6px;align-items:center}
-.rate-row input{flex:1}
-.btn-fetch{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:9px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:background .2s}
-.btn-fetch:hover{background:var(--accent2)}
-.btn-fetch:disabled{background:var(--ink3);cursor:not-allowed}
-.fifo-info{background:var(--warn-light);border:1px solid rgba(212,134,10,.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--warn);margin-bottom:10px}
-.fifo-info strong{display:block;margin-bottom:3px}
-.fifo-row{display:flex;justify-content:space-between;padding:2px 0;font-size:11px}
-.payment-pills{display:flex;gap:6px;flex-wrap:wrap}
-.payment-pill{border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--ink2);transition:all .2s}
-.payment-pill.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
-.payment-pill.active.free{border-color:var(--warn);background:var(--warn-light);color:var(--warn)}
-
-/* COUNTRIES */
-.countries-row{display:flex;flex-direction:column;gap:8px}
-.country-slot{display:flex;gap:8px;align-items:center}
-.country-slot select{flex:1}
-.ctag{font-size:11px;background:var(--accent-light);color:var(--accent);border-radius:12px;padding:3px 10px;font-weight:600;white-space:nowrap;display:none}
-
-/* ACTION BAR */
-.action-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;box-shadow:0 -4px 16px rgba(0,0,0,.08);z-index:90}
-.action-bar .btn{flex:1;justify-content:center}
-.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.tag-online{background:#dff5e7;color:#1a7a40}
-.tag-offline{background:#fef3cd;color:#856404}
-.toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;padding:9px 18px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;pointer-events:none}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.section-nav{display:flex;gap:3px;margin-bottom:16px;background:var(--surface);padding:4px;border-radius:var(--radius);border:1px solid var(--border)}
-.section-tab{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;color:var(--ink3);transition:all .2s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
-.section-tab.active{background:var(--ink);color:#fff}
-.section{display:none}
-.section.active{display:block}
-.img-prev-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:none;align-items:center;justify-content:center;padding:16px}
-.img-prev-overlay.open{display:flex}
-.img-prev-overlay img{max-width:100%;max-height:90vh;border-radius:8px;object-fit:contain}
-.img-prev-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-@media(max-width:560px){.form-row.c2,.form-row.c3{grid-template-columns:1fr}.add-btns .btn-sm{font-size:11px;padding:5px 8px}}
+  :root {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #101418; color: #e8eaed;
+    --bg2: #171c22; --bg3: #1f262e; --line: #2c3540;
+    --acc: #4f8cff; --rec: #ff4d5e; --ok: #58c470;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #101418; color: #e8eaed; }
+  body { padding: 10px; padding-bottom: 40px; max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.15rem; margin: 8px 0 12px; }
+  h2 { font-size: 1rem; margin: 14px 0 8px; color: #b8c0c8; }
+  header { display: flex; align-items: center; gap: 10px; }
+  header h1 { flex: 1; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  button {
+    font-family: inherit; font-size: .95rem; border: 1px solid var(--line);
+    background: var(--bg3); color: #e8eaed; border-radius: 10px;
+    padding: 10px 14px; min-height: 44px; cursor: pointer;
+  }
+  button:active { background: #2a333d; }
+  button.primary { background: #244a8f; border-color: #2f5db3; }
+  button.danger { background: #5a2430; border-color: #8f2f3f; }
+  button.small { min-height: 34px; padding: 5px 9px; font-size: .85rem; border-radius: 8px; }
+  input[type="text"], input[type="number"] {
+    font-family: inherit; font-size: .95rem; background: var(--bg3);
+    border: 1px solid var(--line); color: #e8eaed; border-radius: 10px;
+    padding: 10px; min-height: 44px; min-width: 0;
+  }
+  input[type="range"] { width: 90px; }
+  .row { display: flex; gap: 8px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
+  .row > input { flex: 1; }
+  .hidden { display: none !important; }
+  .hint { font-size: .8rem; color: #9aa3ab; margin: 6px 0 2px; }
+  #banner {
+    background: #4a3a14; border: 1px solid #8a6d1e; color: #ffd66b;
+    border-radius: 10px; padding: 10px; margin: 10px 0; font-size: .85rem;
+  }
+  ul.plain { list-style: none; margin: 8px 0; padding: 0; }
+  ul.plain li {
+    background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px; margin: 8px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .pname { font-weight: 600; flex: 1 1 140px; overflow-wrap: anywhere; }
+  .meta { font-size: .8rem; color: #9aa3ab; flex-basis: 100%; }
+  #transport {
+    background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  #timeNow { font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+  #timeTotal { font-variant-numeric: tabular-nums; font-size: .9rem; color: #9aa3ab; }
+  #btnPlay { font-size: 1.1rem; width: 64px; }
+  #btnRec { background: #5a1a22; border-color: #8f2f3f; font-weight: 700; }
+  #btnRec.on { background: var(--rec); border-color: #ff8090; color: #fff; animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+  #timeline { width: 100%; height: 160px; background: #0d1116; border: 1px solid var(--line); border-radius: 10px; margin-top: 10px; touch-action: none; }
+  .track {
+    background: var(--bg2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 8px 10px; margin: 8px 0;
+  }
+  .track .trow1 { display: flex; align-items: center; gap: 8px; }
+  .track .tname { font-weight: 600; flex: 1; overflow-wrap: anywhere; }
+  .track .tname.muted { text-decoration: line-through; color: #9aa3ab; }
+  .track .trow2 { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; font-size: .85rem; }
+  .track input[type="number"] { min-height: 34px; padding: 4px 6px; width: 84px; font-size: .85rem; }
+  .tmeta { color: #9aa3ab; }
+  #status { font-size: .85rem; color: #9fd8ae; min-height: 20px; margin: 8px 0; }
+  details.help { margin: 16px 0; font-size: .85rem; color: #b8c0c8; }
+  details.help summary { cursor: pointer; color: var(--acc); }
+  details.help li { margin: 6px 0; }
 </style>
 </head>
 <body>
 
-<header class="app-header">
-  <h1>📋 Expense Report</h1>
-  <div class="header-actions">
-    <span id="onlineTag" class="tag tag-online">● Online</span>
-    <button class="btn-icon" onclick="newReport()">+ New</button>
-  </div>
+<header>
+  <button id="btnHome" class="small">⌂ Progetti</button>
+  <h1 id="appTitle">🎛 Studio Multitraccia</h1>
 </header>
+<div id="banner" class="hidden"></div>
 
-<div class="main">
-  <div class="section-nav">
-    <button class="section-tab active" onclick="showSection('settings',this)">⚙️ Settings</button>
-    <button class="section-tab" onclick="showSection('upload',this)">📎 Upload</button>
-    <button class="section-tab" onclick="showSection('expenses',this)">📊 Movements</button>
-    <button class="section-tab" onclick="showSection('signature',this)">✍️ Sign</button>
+<!-- ======== VISTA PROGETTI ======== -->
+<section id="viewProjects">
+  <h2>I miei progetti</h2>
+  <div class="row">
+    <input type="text" id="newProjName" placeholder="Nome del nuovo progetto…">
+    <button id="btnNewProject" class="primary">＋ Crea</button>
   </div>
+  <ul class="plain" id="projectList"></ul>
+  <details class="help">
+    <summary>Istruzioni rapide</summary>
+    <ul>
+      <li>Crea un progetto, poi importaci i file audio dalla memoria del telefono (pulsante 📂 dentro il progetto).</li>
+      <li>Ogni traccia ha un <b>tempo di partenza</b> che decidi tu: scrivilo in secondi, oppure posiziona il cursore sulla timeline e premi “⇤ Qui”.</li>
+      <li>Con le <b>cuffie</b> collegate, premi ● REC: il missaggio riparte dal cursore e la tua voce viene registrata come nuova traccia, già piazzata al punto giusto.</li>
+      <li>Esporta il missaggio completo o le singole tracce in <b>MP3 192 kbps</b> (o WAV). I progetti restano salvati nel telefono.</li>
+      <li>Per usare l'app serve l'indirizzo pubblico (es. GitHub Pages): il microfono funziona solo via HTTPS.</li>
+    </ul>
+  </details>
+</section>
 
-  <div class="api-banner" id="apiBanner">
-    <div style="font-size:1.3rem;flex-shrink:0">🔑</div>
-    <div style="flex:1">
-      <p><strong>OCR.space API Key (optional)</strong><br>
-      Get your free key at <a href="https://ocr.space/OCRAPI" target="_blank">ocr.space/OCRAPI</a>. Without it, offline Tesseract OCR is used.</p>
-      <div class="api-key-row">
-        <input type="text" id="ocrApiKey" placeholder="e.g. K12345678901234">
-        <button class="btn btn-success btn-sm" onclick="saveApiKey()">Save</button>
-      </div>
-    </div>
+<!-- ======== VISTA PROGETTO ======== -->
+<section id="viewProject" class="hidden">
+  <div id="transport">
+    <span id="timeNow">0:00.0</span><span id="timeTotal">/ 0:00.0</span>
+    <button id="btnPlay" class="primary">▶</button>
+    <button id="btnRec">● REC</button>
   </div>
+  <canvas id="timeline"></canvas>
+  <p class="hint">Tocca la timeline per spostare il cursore. Il REC registra a partire dal cursore.</p>
 
-  <!-- SETTINGS -->
-  <div class="section active" id="section-settings">
-    <div class="card">
-      <div class="card-title">📄 Report Settings</div>
-      <div class="form-row">
-        <div class="form-group"><label>Report Name</label><input type="text" id="reportName" placeholder="e.g., Q2 2026 Kenya Mission" oninput="autoSave()"></div>
-      </div>
-      <div class="form-row c2">
-        <div class="form-group"><label>Start Date</label><input type="date" id="startDate" oninput="autoSave()"></div>
-        <div class="form-group"><label>End Date</label><input type="date" id="endDate" oninput="autoSave()"></div>
-      </div>
-      <div class="form-row c2">
-        <div class="form-group"><label>Person Reporting</label><input type="text" id="personName" placeholder="Full name" oninput="autoSave()"></div>
-        <div class="form-group"><label>Project Name</label><input type="text" id="projectName" placeholder="Project name" oninput="autoSave()"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Project ID</label><input type="text" id="projectId" placeholder="Project identification number" oninput="autoSave()"></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">🌍 Mission Countries</div>
-      <p style="font-size:13px;color:var(--ink2);margin-bottom:12px">Select up to 3 countries. Currency will be preset for new expenses.</p>
-      <div class="countries-row">
-        <div class="country-slot"><select id="country0" onchange="updateCountry(0,this.value)"><option value="">— Country 1 —</option></select><span class="ctag" id="ctag0"></span></div>
-        <div class="country-slot"><select id="country1" onchange="updateCountry(1,this.value)"><option value="">— Country 2 (optional) —</option></select><span class="ctag" id="ctag1"></span></div>
-        <div class="country-slot"><select id="country2" onchange="updateCountry(2,this.value)"><option value="">— Country 3 (optional) —</option></select><span class="ctag" id="ctag2"></span></div>
-      </div>
-    </div>
+  <h2>Tracce del progetto</h2>
+  <div class="row">
+    <button id="btnImport">📂 Importa audio dalla memoria</button>
+    <input type="file" id="fileInput" accept="audio/*" multiple class="hidden">
   </div>
+  <div id="trackList"></div>
 
-  <!-- UPLOAD -->
-  <div class="section" id="section-upload">
-    <div class="card">
-      <div class="card-title">📎 Upload Receipts</div>
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="fileInput" accept="image/*,.pdf" multiple onchange="handleFiles(this.files)">
-        <div class="upload-icon">⬆️</div>
-        <p>Tap to upload or drop receipt images here</p>
-        <small>Supports JPG, PNG, PDF</small>
-      </div>
-      <div class="ocr-status" id="ocrStatus"></div>
-    </div>
+  <h2>Esporta</h2>
+  <div class="row">
+    <button id="btnExportMixMp3" class="primary">💾 Missaggio MP3</button>
+    <button id="btnExportMixWav">💾 Missaggio WAV</button>
   </div>
-
-  <!-- MOVEMENTS -->
-  <div class="section" id="section-expenses">
-    <div class="balance-panel" id="balancePanel" style="display:none">
-      <h3>📊 Balance Summary</h3>
-      <div class="balance-grid">
-        <div class="balance-item"><label>Total Advances (EUR)</label><div class="val" id="bTotalAdvance">€0.00</div></div>
-        <div class="balance-item"><label>Total Expenses (EUR)</label><div class="val" id="bTotalExpense">€0.00</div></div>
-      </div>
-      <div class="balance-final" id="bFinal">
-        <div class="bf-amount" id="bFinalAmount">€0.00</div>
-        <div class="bf-note" id="bFinalNote"></div>
-      </div>
-      <div class="cur-section" id="curSection"></div>
-    </div>
-
-    <div class="card">
-      <div class="expenses-header">
-        <div class="expenses-count" id="expensesCount">Movements (0)</div>
-        <div class="add-btns">
-          <button class="btn btn-success btn-sm" onclick="addAdvance()">💰 Advance</button>
-          <button class="btn btn-blue btn-sm" onclick="addExchange()">↔ Exchange</button>
-          <button class="btn btn-outline btn-sm" onclick="addExpenseManually()">+ Expense</button>
-        </div>
-      </div>
-      <div id="expensesList">
-        <div class="empty-state"><div class="ei">🧾</div><p>No movements yet.<br>Add a cash advance to start.</p></div>
-      </div>
-    </div>
+  <div class="row">
+    <span class="hint">Compensazione REC:</span>
+    <input type="number" id="recLatency" value="0" step="10" style="width:90px"> <span class="hint">ms (positivo = nuova registrazione spostata prima)</span>
   </div>
+  <div id="status"></div>
+</section>
 
-  <!-- SIGNATURE -->
-  <div class="section" id="section-signature">
-    <div class="card">
-      <div class="card-title">✍️ Signature</div>
-      <p style="font-size:13px;color:var(--ink2);margin-bottom:12px">Draw your signature. It will appear on the PDF export.</p>
-      <div class="sig-wrapper"><canvas id="sigCanvas"></canvas></div>
-      <div class="sig-controls">
-        <button class="btn btn-outline btn-sm" onclick="clearSig()">🗑 Clear</button>
-        <button class="btn btn-success btn-sm" onclick="saveSig()">✓ Confirm</button>
-        <span class="sig-status" id="sigStatus">Not signed</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="action-bar">
-  <button class="btn btn-success" onclick="exportPDF()">⬇ Export PDF</button>
-  <button class="btn btn-primary" onclick="exportODS()">📊 Export ODS</button>
-</div>
-
-<div class="modal-overlay" id="expModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeExpModal()">✕</button>
-    <div class="modal-title" id="expModalTitle">Movement</div>
-    <div id="expModalBody"></div>
-  </div>
-</div>
-
-<div class="img-prev-overlay" id="imgPrev" onclick="closeImgPrev()">
-  <button class="img-prev-close" onclick="closeImgPrev()">✕</button>
-  <img id="imgPrevSrc" src="" alt="">
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-// ══════════════════════════════════════════════════════════════════════════════
-// CONSTANTS
-// ══════════════════════════════════════════════════════════════════════════════
-const COUNTRY_LIST=[
-  {name:'Albania',currency:'ALL',flag:'🇦🇱'},
-  {name:'Italy',currency:'EUR',flag:'🇮🇹'},
-  {name:'Kenya',currency:'KES',flag:'🇰🇪'},
-  {name:'Kosovo',currency:'EUR',flag:'🇽🇰'},
-  {name:'Lebanon',currency:'USD',flag:'🇱🇧'},
-  {name:'Mozambique',currency:'MZN',flag:'🇲🇿'},
-  {name:'North Macedonia',currency:'MKD',flag:'🇲🇰'},
-  {name:'South Africa',currency:'ZAR',flag:'🇿🇦'},
-  {name:'Zambia',currency:'ZMW',flag:'🇿🇲'},
-];
-const CURRENCIES=['EUR','USD','GBP','CHF','JPY','SEK','NOK','DKK','PLN','CZK','HUF','RON','BGN','MKD','ALL','MZN','KES','ZMW','ZAR','TZS','UGX','RWF','ETB','GHS','NGN','MAD','TND'];
-const DEFAULT_RATES={EUR:1,USD:0.92,GBP:1.17,CHF:1.04,JPY:0.0062,SEK:0.088,NOK:0.086,DKK:0.134,PLN:0.23,CZK:0.041,HUF:0.0026,RON:0.20,BGN:0.51,MKD:0.016,ALL:0.0095,MZN:0.014,KES:0.0071,ZMW:0.037,ZAR:0.051,TZS:0.00036,UGX:0.00025,RWF:0.00071,ETB:0.0065,GHS:0.061,NGN:0.00058,MAD:0.092,TND:0.296};
-const PAY_METHODS=['Cash','Personal Card','Institutional Card'];
+'use strict';
+/* ================================================================
+   Studio Multitraccia — registratore multitraccia in un solo file.
+   Progetti + tracce salvati in IndexedDB (restano nel telefono).
+   Esportazione MP3 192 kbps (encoder lamejs caricato alla prima
+   esportazione e poi conservato in cache) + fallback WAV.
+   ================================================================ */
 
-// ══════════════════════════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════════════════════════
-// Each movement: { id, type:'expense'|'advance'|'exchange', date, ... }
-// expense extra fields: amount, currency, rate, rateOverride:bool, paymentMethod,
-//   amountEur, budgetLine, description, docType, receipts[]
-//   computed: fifoSlices:[{trancheId, amount, rate, eur}], totalEur
-// advance: amount, currency, rate, amountEur, description, receipts[]
-// exchange: fromCurrency, fromAmount, toCurrency, toAmount, rate, description, receipts[]
-let movements=[], signatureData=null, ocrApiKey='', isOnline=navigator.onLine, missionCountries=['','',''], sigReady=false;
+/* ---------- utility ---------- */
+function $(id) { return document.getElementById(id); }
+function uid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now() + '-' + Math.floor(Math.random() * 1e9);
+}
+function fmtTime(s) {
+  if (!isFinite(s) || s < 0) s = 0;
+  const m = Math.floor(s / 60), sec = s - m * 60;
+  return m + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1);
+}
+function safeName(s) { return String(s).replace(/[^\w\- àèéìòù]/gi, '_').slice(0, 60).trim() || 'traccia'; }
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function banner(msg) {
+  const b = $('banner');
+  if (!msg) { b.classList.add('hidden'); return; }
+  b.textContent = msg;
+  b.classList.remove('hidden');
+}
+function status(msg) { $('status').textContent = msg || ''; }
+const nextPaint = () => new Promise(function (r) { setTimeout(r, 60); });
+const PALETTE = ['#4f8cff', '#ff8f4f', '#58c470', '#c46be0', '#e0c34b', '#4fd8d8', '#ff6b81', '#9dc46b'];
 
-// ══════════════════════════════════════════════════════════════════════════════
-// FIFO ENGINE
-// ══════════════════════════════════════════════════════════════════════════════
-// Returns a snapshot of FIFO state after processing all movements in order.
-// fifoState[currency] = array of tranche objects (mutable copies), sorted oldest-first.
-// Each tranche: { id (source movement id + trancheIdx), sourceId, rate, remaining }
+/* ---------- storage (IndexedDB con fallback memoria) ---------- */
+const DB_NAME = 'multitrack-studio', DB_VER = 1;
+let db = null, memoryMode = false;
+const store = { projects: [], tracks: [] }; // solo per memoryMode
 
-function buildFifoState(upToIndex = Infinity) {
-  // tranche queues per currency
-  const queues = {}; // currency -> [{id, sourceId, rate, remaining}]
-
-  for (let i = 0; i < movements.length && i <= upToIndex; i++) {
-    const mv = movements[i];
-
-    if (mv.type === 'advance') {
-      const cur = mv.currency || 'EUR';
-      const amt = parseFloat(mv.amount) || 0;
-      const rate = parseFloat(mv.rate) || 1;
-      if (amt > 0) {
-        if (!queues[cur]) queues[cur] = [];
-        queues[cur].push({ id: mv.id + '_adv', sourceId: mv.id, rate, remaining: amt });
+function openDB() {
+  return new Promise(function (resolve) {
+    let rq;
+    try { rq = indexedDB.open(DB_NAME, DB_VER); }
+    catch (e) { memoryMode = true; return resolve(); }
+    rq.onupgradeneeded = function (e) {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('projects')) d.createObjectStore('projects', { keyPath: 'id' });
+      if (!d.objectStoreNames.contains('tracks')) {
+        const t = d.createObjectStore('tracks', { keyPath: 'id' });
+        t.createIndex('projectId', 'projectId', { unique: false });
       }
-    }
-
-    if (mv.type === 'exchange') {
-      const fc = mv.fromCurrency, tc = mv.toCurrency;
-      const fa = parseFloat(mv.fromAmount) || 0;
-      const ta = parseFloat(mv.toAmount) || 0;
-      const rate = parseFloat(mv.rate) || 1;
-      // Deduct from source currency FIFO
-      if (fa > 0 && queues[fc]) consumeFifo(queues[fc], fa);
-      // Add to target currency FIFO
-      if (ta > 0) {
-        if (!queues[tc]) queues[tc] = [];
-        queues[tc].push({ id: mv.id + '_exc', sourceId: mv.id, rate, remaining: ta });
-      }
-    }
-
-    if (mv.type === 'expense' && !mv.rateOverride && mv.paymentMethod === 'Cash') {
-      const cur = mv.currency || 'EUR';
-      const amt = parseFloat(mv.amount) || 0;
-      if (amt > 0 && queues[cur]) consumeFifo(queues[cur], amt);
-    }
-  }
-
-  return queues;
+      if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
+    };
+    rq.onsuccess = function (e) { db = e.target.result; resolve(); };
+    rq.onerror = function () { memoryMode = true; resolve(); };
+    rq.onblocked = function () { memoryMode = true; resolve(); };
+  });
+}
+function tx(storeName, mode) { return db.transaction(storeName, mode).objectStore(storeName); }
+function idbPut(storeName, value) {
+  if (memoryMode) { const i = store[storeName].findIndex(function (x) { return x.id === value.id; }); if (i >= 0) store[storeName][i] = value; else store[storeName].push(value); return Promise.resolve(); }
+  return new Promise(function (res, rej) {
+    const r = tx(storeName, 'readwrite').put(value);
+    r.onsuccess = function () { res(); }; r.onerror = function () { rej(r.error); };
+  });
+}
+function idbDelete(storeName, id) {
+  if (memoryMode) { store[storeName] = store[storeName].filter(function (x) { return x.id !== id; }); return Promise.resolve(); }
+  return new Promise(function (res, rej) {
+    const r = tx(storeName, 'readwrite').delete(id);
+    r.onsuccess = function () { res(); }; r.onerror = function () { rej(r.error); };
+  });
+}
+function idbAll(storeName) {
+  if (memoryMode) return Promise.resolve(store[storeName].slice());
+  return new Promise(function (res, rej) {
+    const r = tx(storeName, 'readonly').getAll();
+    r.onsuccess = function () { res(r.result || []); }; r.onerror = function () { rej(r.error); };
+  });
+}
+function idbByIndex(storeName, index, value) {
+  if (memoryMode) return Promise.resolve(store[storeName].filter(function (x) { return x[index] === value; }));
+  return new Promise(function (res, rej) {
+    const r = tx(storeName, 'readonly').index(index).getAll(value);
+    r.onsuccess = function () { res(r.result || []); }; r.onerror = function () { rej(r.error); };
+  });
+}
+function metaGet(key) {
+  if (memoryMode) return Promise.resolve(null);
+  return new Promise(function (res) {
+    const r = tx('meta', 'readonly').get(key);
+    r.onsuccess = function () { res(r.result !== undefined ? r.result : null); };
+    r.onerror = function () { res(null); };
+  });
+}
+function metaSet(key, value) {
+  if (memoryMode) return Promise.resolve();
+  return new Promise(function (res) {
+    const r = tx('meta', 'readwrite').put(value, key);
+    r.onsuccess = function () { res(); }; r.onerror = function () { res(); };
+  });
 }
 
-function consumeFifo(queue, amount) {
-  let remaining = amount;
-  for (const t of queue) {
-    if (remaining <= 0) break;
-    const consume = Math.min(t.remaining, remaining);
-    t.remaining -= consume;
-    remaining -= consume;
-  }
-  // Remove fully depleted tranches
-  // (keep them for display, just leave remaining=0)
+/* ---------- stato ---------- */
+const state = {
+  projects: [],
+  current: null,      // progetto aperto
+  tracks: [],         // tracce del progetto aperto
+  playhead: 0,
+  playing: false,
+  recording: false,
+  recStartPos: 0,
+  startCtx: 0,
+  sources: [],
+  gains: null,
+  loopToken: 0,
+  buffers: new Map()
+};
+let actx = null, mediaStream = null, mediaRec = null, recChunks = [], wakeLock = null;
+
+/* ---------- audio ---------- */
+function ensureAudio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
 }
-
-// Get FIFO slices for a specific cash expense (how it maps to tranches)
-// Returns: { slices:[{rate, amount, eur}], totalEur, suggestedRate }
-function getFifoSlices(movementIndex) {
-  const mv = movements[movementIndex];
-  if (!mv || mv.type !== 'expense' || mv.rateOverride || mv.paymentMethod !== 'Cash') return null;
-
-  const cur = mv.currency || 'EUR';
-  const amount = parseFloat(mv.amount) || 0;
-  if (amount === 0) return null;
-
-  // Build FIFO state just before this movement
-  const queues = buildFifoState(movementIndex - 1);
-  const queue = queues[cur] || [];
-
-  const slices = [];
-  let remaining = amount;
-
-  for (const t of queue) {
-    if (remaining <= 0) break;
-    const consume = Math.min(t.remaining, remaining);
-    if (consume > 0) {
-      slices.push({ rate: t.rate, amount: consume, eur: consume * t.rate });
-    }
-    remaining -= consume;
-  }
-
-  // If no FIFO available (e.g. EUR expense or no advance), use movement's own rate
-  if (slices.length === 0 && amount > 0) {
-    const rate = parseFloat(mv.rate) || DEFAULT_RATES[cur] || 1;
-    slices.push({ rate, amount, eur: amount * rate });
-  }
-
-  const totalEur = slices.reduce((s, sl) => s + sl.eur, 0);
-  const suggestedRate = amount > 0 ? totalEur / amount : (DEFAULT_RATES[cur] || 1);
-  return { slices, totalEur, suggestedRate };
-}
-
-// Get suggested rate for a new expense at position movementIndex
-function getSuggestedRate(currency, movementIndex) {
-  if (currency === 'EUR') return 1;
-  // Look at FIFO queue just before this index
-  const queues = buildFifoState(movementIndex - 1);
-  const queue = queues[currency];
-  if (queue) {
-    // Find first tranche with remaining > 0
-    const t = queue.find(x => x.remaining > 0);
-    if (t) return t.rate;
-  }
-  return DEFAULT_RATES[currency] || 1;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// BALANCE CALCULATION
-// ══════════════════════════════════════════════════════════════════════════════
-function calcBalance() {
-  let totalAdvEur = 0, totalExpEur = 0;
-
-  for (let i = 0; i < movements.length; i++) {
-    const mv = movements[i];
-    if (mv.type === 'advance') {
-      totalAdvEur += parseFloat(mv.amountEur) || 0;
-    }
-    if (mv.type === 'expense') {
-      // Use FIFO-computed EUR for cash, stored amountEur for free movements
-      if (!mv.rateOverride && mv.paymentMethod === 'Cash') {
-        const sliceData = getFifoSlices(i);
-        totalExpEur += sliceData ? sliceData.totalEur : (parseFloat(mv.amountEur) || 0);
-      } else {
-        totalExpEur += parseFloat(mv.amountEur) || 0;
-      }
-    }
-  }
-
-  const finalEur = totalAdvEur - totalExpEur;
-
-  // Per-currency FIFO balances
-  const queues = buildFifoState();
-
-  return { totalAdvEur, totalExpEur, finalEur, queues };
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════════════════════
-window.addEventListener('load', () => {
-  buildCountryDropdowns();
-  loadState();
-  setupDragDrop();
-  updateOnline();
-  window.addEventListener('online', updateOnline);
-  window.addEventListener('offline', updateOnline);
-});
-
-function updateOnline() {
-  isOnline = navigator.onLine;
-  const t = document.getElementById('onlineTag');
-  t.textContent = isOnline ? '● Online' : '● Offline';
-  t.className = isOnline ? 'tag tag-online' : 'tag tag-offline';
-}
-
-function showSection(name, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('section-' + name).classList.add('active');
-  if (btn) btn.classList.add('active');
-  if (name === 'signature') setTimeout(initSig, 80);
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// COUNTRIES
-// ══════════════════════════════════════════════════════════════════════════════
-function buildCountryDropdowns() {
-  for (let i = 0; i < 3; i++) {
-    const sel = document.getElementById('country' + i);
-    const ph = i === 0 ? '— Country 1 —' : `— Country ${i + 1} (optional) —`;
-    sel.innerHTML = `<option value="">${ph}</option>` + COUNTRY_LIST.map(c => `<option value="${c.name}">${c.flag} ${c.name}</option>`).join('');
-  }
-}
-function updateCountry(idx, val) {
-  missionCountries[idx] = val;
-  const c = COUNTRY_LIST.find(x => x.name === val);
-  const tag = document.getElementById('ctag' + idx);
-  if (c) { tag.textContent = `${c.flag} ${c.currency}`; tag.style.display = 'inline-block'; }
-  else tag.style.display = 'none';
-  autoSave();
-}
-function defaultCurrency() {
-  for (const n of missionCountries) { if (n) { const c = COUNTRY_LIST.find(x => x.name === n); if (c) return c.currency; } }
-  return 'EUR';
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// API KEY
-// ══════════════════════════════════════════════════════════════════════════════
-function saveApiKey() {
-  ocrApiKey = document.getElementById('ocrApiKey').value.trim();
-  if (ocrApiKey) { localStorage.setItem('ocrApiKey', ocrApiKey); document.getElementById('apiBanner').style.display = 'none'; showToast('✓ API key saved'); }
-}
-function loadApiKey() {
-  const s = localStorage.getItem('ocrApiKey');
-  if (s) { ocrApiKey = s; document.getElementById('ocrApiKey').value = s; document.getElementById('apiBanner').style.display = 'none'; }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// UPLOAD / OCR
-// ══════════════════════════════════════════════════════════════════════════════
-function setupDragDrop() {
-  const z = document.getElementById('uploadZone');
-  z.addEventListener('dragover', e => { e.preventDefault(); z.classList.add('drag-over'); });
-  z.addEventListener('dragleave', () => z.classList.remove('drag-over'));
-  z.addEventListener('drop', e => { e.preventDefault(); z.classList.remove('drag-over'); handleFiles(e.dataTransfer.files); });
-}
-async function handleFiles(files) { for (const f of Array.from(files)) await processFile(f); }
-
-async function processFile(file, addToId = null) {
-  showOcrSt('processing', `🔍 Processing ${file.name}...`);
-  const dataUrl = await toDataUrl(file);
-  let ex = {};
-  if (file.type !== 'application/pdf') {
-    if (isOnline && ocrApiKey) {
-      try { ex = await ocrSpace(file); showOcrSt('success', '✓ OCR.space: data extracted'); }
-      catch (e) { ex = await tesseract(dataUrl, file.name); }
-    } else ex = await tesseract(dataUrl, file.name);
-  } else showOcrSt('success', '✓ PDF attached');
-
-  if (addToId !== null) {
-    const mv = movements.find(m => m.id === addToId);
-    if (mv) { mv.receipts.push(dataUrl); renderMovements(); renderModal(addToId); autoSave(); }
-  } else {
-    addExpenseMove(ex, dataUrl);
-    document.querySelectorAll('.section-tab')[2].click();
-  }
-  setTimeout(() => { document.getElementById('ocrStatus').style.display = 'none'; }, 3000);
-}
-
-function toDataUrl(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); }); }
-
-async function ocrSpace(file) {
-  const fd = new FormData(); fd.append('file', file); fd.append('apikey', ocrApiKey); fd.append('language', 'eng'); fd.append('isOverlayRequired', 'false');
-  const resp = await fetch('https://api.ocr.space/parse/image', { method: 'POST', body: fd });
-  const d = await resp.json();
-  if (d.IsErroredOnProcessing) throw new Error(d.ErrorMessage);
-  return parseText(d.ParsedResults?.[0]?.ParsedText || '');
-}
-async function tesseract(dataUrl, name) {
-  showOcrSt('processing', `🔍 Tesseract: ${name}...`);
+async function getBuffer(t) {
+  if (state.buffers.has(t.id)) return state.buffers.get(t.id);
   try {
-    const r = await Tesseract.recognize(dataUrl, 'eng', { logger: m => { if (m.status === 'recognizing text') showOcrSt('processing', `🔍 Tesseract: ${Math.round(m.progress * 100)}%`); } });
-    showOcrSt('success', '✓ Tesseract complete'); return parseText(r.data.text);
-  } catch (e) { showOcrSt('error', '⚠ OCR failed'); return {}; }
-}
-function parseText(t) {
-  const ex = {};
-  const aRe = /(?:total|amount|sum|tot|totale|importo)[^\d]*(\d+[.,]\d{2})/i;
-  const fRe = /\b(\d{1,6}[.,]\d{2})\b/g;
-  for (const l of t.split('\n').map(x => x.trim()).filter(Boolean)) { const m = l.match(aRe); if (m) { ex.amount = parseFloat(m[1].replace(',', '.')); break; } }
-  if (!ex.amount) { const all = []; let m; while ((m = fRe.exec(t)) !== null) all.push(parseFloat(m[1].replace(',', '.'))); if (all.length) ex.amount = Math.max(...all); }
-  const dm = t.match(/\b(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})\b/);
-  if (dm) { try { const p = dm[1].split(/[\/\-\.]/); let y = p[2], mo = p[1], d = p[0]; if (y && y.length === 2) y = '20' + y; if (parseInt(p[0]) > 31) { y = p[0]; d = p[2]; } ex.date = `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`; } catch (e) { } }
-  return ex;
-}
-function showOcrSt(type, msg) {
-  const el = document.getElementById('ocrStatus');
-  el.className = 'ocr-status ' + type;
-  el.innerHTML = type === 'processing' ? `<div class="spinner"></div> ${msg}` : msg;
-  el.style.display = 'flex';
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MOVEMENT CREATION
-// ══════════════════════════════════════════════════════════════════════════════
-function mkId() { return Date.now() + Math.random(); }
-const todayStr = () => new Date().toISOString().split('T')[0];
-
-function addExpenseMove(data = {}, rcpt = null) {
-  const cur = data.currency || defaultCurrency();
-  const idx = movements.length;
-  const rate = getSuggestedRate(cur, idx);
-  const mv = {
-    id: mkId(), type: 'expense', date: data.date || todayStr(),
-    amount: data.amount || '', currency: cur, rate,
-    rateOverride: false, paymentMethod: 'Cash',
-    amountEur: '', budgetLine: '', description: data.amount ? 'Extracted expense' : '',
-    docType: 'Receipt', receipts: rcpt ? [rcpt] : []
-  };
-  mv.amountEur = mv.amount ? (parseFloat(mv.amount) * rate).toFixed(2) : '';
-  movements.push(mv); renderMovements(); autoSave();
-}
-
-function addAdvance() {
-  const mv = { id: mkId(), type: 'advance', date: todayStr(), amount: '', currency: defaultCurrency(), rate: DEFAULT_RATES[defaultCurrency()] || 1, amountEur: '', description: 'Cash advance', receipts: [] };
-  movements.push(mv); renderMovements(); autoSave(); openModal(mv.id);
-}
-
-function addExchange() {
-  const mv = { id: mkId(), type: 'exchange', date: todayStr(), fromCurrency: defaultCurrency(), fromAmount: '', toCurrency: 'EUR', toAmount: '', rate: '', description: 'Currency exchange', receipts: [] };
-  movements.push(mv); renderMovements(); autoSave(); openModal(mv.id);
-}
-
-function addExpenseManually() { addExpenseMove({}); showToast('New expense — tap row to edit'); }
-
-function removeMovement(id) {
-  if (!confirm('Delete this movement?')) return;
-  movements = movements.filter(m => m.id !== id);
-  renderMovements(); autoSave(); closeExpModal();
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// FIELD UPDATE
-// ══════════════════════════════════════════════════════════════════════════════
-function updField(id, field, val) {
-  const mv = movements.find(m => m.id === id); if (!mv) return;
-  mv[field] = val;
-
-  if (mv.type === 'advance') {
-    if (field === 'amount' || field === 'rate') { const a = parseFloat(mv.amount), r = parseFloat(mv.rate); mv.amountEur = (!isNaN(a) && !isNaN(r)) ? (a * r).toFixed(2) : ''; }
-    if (field === 'currency') { mv.rate = DEFAULT_RATES[val] || 1; mv.amountEur = mv.amount ? (parseFloat(mv.amount) * mv.rate).toFixed(2) : ''; }
+    const ab = await t.blob.arrayBuffer();
+    const buf = await ensureAudio().decodeAudioData(ab);
+    state.buffers.set(t.id, buf);
+    return buf;
+  } catch (e) {
+    console.warn('Decode fallito per', t.name, e);
+    return null;
   }
-
-  if (mv.type === 'expense') {
-    // If rate was manually changed, mark as override (free movement)
-    if (field === 'rate') { mv.rateOverride = true; mv.amountEur = mv.amount ? (parseFloat(mv.amount) * parseFloat(val)).toFixed(2) : ''; }
-    if (field === 'amount') { mv.amountEur = mv.amount ? (parseFloat(mv.amount) * (parseFloat(mv.rate) || 1)).toFixed(2) : ''; }
-    if (field === 'currency') {
-      const idx = movements.indexOf(mv);
-      mv.rate = getSuggestedRate(val, idx);
-      mv.rateOverride = false;
-      mv.amountEur = mv.amount ? (parseFloat(mv.amount) * mv.rate).toFixed(2) : '';
-      // update rate input in modal if open
-      const ri = document.getElementById('ri-' + id); if (ri) ri.value = mv.rate;
-    }
-    if (field === 'paymentMethod') {
-      // Switching to non-cash clears FIFO, switching back to Cash re-enables FIFO suggested rate
-      if (val === 'Cash' && mv.rateOverride) {
-        // keep override as-is — user explicitly set it
-      }
-      if (val !== 'Cash') {
-        // keep current rate but mark as override so FIFO doesn't consume it
-        mv.rateOverride = true;
-      }
-    }
+}
+function projectDuration() {
+  let max = 0;
+  for (const t of state.tracks) { const end = t.offset + t.duration; if (end > max) max = end; }
+  return max;
+}
+function currentPlayhead() {
+  if (state.playing && actx) return Math.max(0, state.playhead + (actx.currentTime - state.startCtx));
+  return state.playhead;
+}
+function stopAllSources() {
+  for (const s of state.sources) { try { s.stop(); } catch (e) {} }
+  state.sources = [];
+  state.gains = null;
+}
+function stopPlayback(keepPos) {
+  if (keepPos && state.playing) state.playhead = currentPlayhead();
+  state.playing = false;
+  stopAllSources();
+  updateTransport();
+}
+async function startPlayback(fromPos) {
+  ensureAudio();
+  stopAllSources();
+  const total = projectDuration();
+  if (fromPos == null || fromPos < 0 || fromPos >= total) fromPos = 0;
+  // decodifica preventiva delle tracce attive (es. progetto appena riaperto)
+  for (const t of state.tracks) {
+    if (t.muted) continue;
+    if (!state.buffers.has(t.id)) await getBuffer(t);
   }
-
-  if (mv.type === 'exchange') {
-    if (field === 'fromAmount' || field === 'rate') {
-      const fa = parseFloat(mv.fromAmount), r = parseFloat(mv.rate);
-      if (!isNaN(fa) && !isNaN(r) && r > 0) { mv.toAmount = (fa * r).toFixed(4); const ti = document.getElementById('exto-' + id); if (ti) ti.value = mv.toAmount; }
-    }
+  state.playhead = fromPos;
+  const t0 = actx.currentTime + 0.05;
+  state.startCtx = t0;
+  state.playing = true;
+  state.gains = new Map();
+  for (const t of state.tracks) {
+    if (t.muted) continue;
+    const buf = state.buffers.get(t.id);
+    if (!buf) continue;
+    const localStart = Math.max(0, fromPos - t.offset);
+    if (localStart >= buf.duration) continue;
+    const whenOffset = Math.max(0, t.offset - fromPos);
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    const g = actx.createGain();
+    g.gain.value = t.volume;
+    src.connect(g); g.connect(actx.destination);
+    src.start(t0 + whenOffset, localStart);
+    state.sources.push(src);
+    state.gains.set(t.id, g);
   }
-
-  renderMovements(); autoSave();
-  // Update EUR display in open modal
-  const el = document.getElementById('meur-' + id);
-  if (el) el.textContent = mv.amountEur ? `€${parseFloat(mv.amountEur).toFixed(2)}` : '€—';
+  updateTransport();
+  const tok = ++state.loopToken;
+  requestAnimationFrame(function () { rafLoop(tok); });
+}
+function rafLoop(tok) {
+  if (tok !== state.loopToken || !state.playing) { drawTimeline(); return; }
+  const pos = currentPlayhead();
+  const total = projectDuration();
+  if (pos >= total && total > 0) { stopPlayback(false); state.playhead = total; }
+  $('timeNow').textContent = fmtTime(pos);
+  drawTimeline();
+  requestAnimationFrame(function () { rafLoop(tok); });
 }
 
-function resetRateToFifo(id) {
-  const mv = movements.find(m => m.id === id); if (!mv || mv.type !== 'expense') return;
-  const idx = movements.indexOf(mv);
-  mv.rate = getSuggestedRate(mv.currency, idx);
-  mv.rateOverride = false;
-  mv.amountEur = mv.amount ? (parseFloat(mv.amount) * mv.rate).toFixed(2) : '';
-  const ri = document.getElementById('ri-' + id); if (ri) ri.value = mv.rate;
-  renderMovements(); autoSave(); renderModal(id);
-  showToast('✓ Rate reset to FIFO');
+/* ---------- registrazione ---------- */
+async function requestWakeLock() {
+  try { if (navigator.wakeLock) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
 }
+function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
 
-async function fetchRate(id) {
-  const mv = movements.find(m => m.id === id); if (!mv) return;
-  const btn = document.getElementById('fbtn-' + id); if (btn) { btn.disabled = true; btn.textContent = '...'; }
-  const cur = mv.type === 'exchange' ? mv.fromCurrency : mv.currency;
-  const toCur = mv.type === 'exchange' ? mv.toCurrency : 'EUR';
+async function startRecording() {
+  if (state.recording) return;
+  ensureAudio();
+  stopPlayback(true);
+  const recStart = state.playhead;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Microfono non disponibile: apri l\'app dall\'indirizzo pubblico via HTTPS (es. GitHub Pages).');
+    return;
+  }
+  let stream;
   try {
-    const [y, m] = (mv.date || todayStr()).split('-');
-    const d = await (await fetch(`https://api.frankfurter.app/${y}-${m}-01?from=${cur}&to=${toCur}`)).json();
-    const rate = d.rates?.[toCur];
-    if (rate) {
-      if (mv.type === 'exchange') { mv.rate = rate; const ri = document.getElementById('ri-' + id); if (ri) ri.value = rate; updField(id, 'fromAmount', mv.fromAmount); }
-      else { mv.rate = rate; mv.rateOverride = true; mv.amountEur = mv.amount ? (parseFloat(mv.amount) * rate).toFixed(2) : ''; const ri = document.getElementById('ri-' + id); if (ri) ri.value = rate; }
-      renderMovements(); autoSave(); showToast(`✓ 1 ${cur} = ${rate} ${toCur}`);
-    } else throw new Error('no rate');
-  } catch {
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false }
+    });
+  } catch (e) {
+    alert('Impossibile accedere al microfono: ' + (e && e.message ? e.message : e) +
+      '\n\nServe aprire l\'app via HTTPS e dare il permesso al microfono.');
+    return;
+  }
+  mediaStream = stream;
+  let mime = '';
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+  for (const m of candidates) { if (MediaRecorder.isTypeSupported(m)) { mime = m; break; } }
+  try {
+    mediaRec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+  } catch (e) {
+    alert('Registrazione non supportata: ' + e);
+    stream.getTracks().forEach(function (t) { t.stop(); });
+    return;
+  }
+  recChunks = [];
+  mediaRec.ondataavailable = function (e) { if (e.data && e.data.size) recChunks.push(e.data); };
+  mediaRec.onstop = async function () {
+    if (mediaStream) { mediaStream.getTracks().forEach(function (t) { t.stop(); }); mediaStream = null; }
+    const blob = new Blob(recChunks, { type: mediaRec && mediaRec.mimeType ? mediaRec.mimeType : 'audio/webm' });
+    recChunks = [];
+    releaseWakeLock();
     try {
-      const d = await (await fetch('https://ec.europa.eu/budg/inforeuro/api/public/monthly-rates?lang=EN')).json();
-      const entry = d.find(r => r.isoA3Code === cur);
-      if (entry) {
-        const rate = 1 / entry.value;
-        mv.rate = rate; mv.rateOverride = (mv.type === 'expense'); mv.amountEur = mv.amount ? (parseFloat(mv.amount) * rate).toFixed(2) : '';
-        const ri = document.getElementById('ri-' + id); if (ri) ri.value = rate;
-        renderMovements(); autoSave(); showToast('✓ InforEuro rate applied');
-      } else showToast('⚠ Rate not found');
-    } catch { showToast('⚠ Offline — using default rate'); }
-  }
-  if (btn) { btn.disabled = false; btn.textContent = 'Fetch'; }
+      const ab = await blob.arrayBuffer();
+      const buf = await actx.decodeAudioData(ab);
+      const comp = (parseFloat(($('recLatency').value || '0').replace(',', '.')) || 0) / 1000;
+      const t = {
+        id: uid(), projectId: state.current.id,
+        name: 'Registrazione ' + new Date().toLocaleTimeString('it-IT'),
+        kind: 'rec', blob: blob, mime: blob.type,
+        duration: buf.duration,
+        offset: Math.max(0, recStart - comp),
+        muted: false, volume: 1, createdAt: Date.now()
+      };
+      state.buffers.set(t.id, buf);
+      await saveTrack(t);
+      state.tracks.push(t);
+      renderTracks();
+      drawTimeline();
+      status('Registrazione salvata come traccia ✓ (posizionata a ' + fmtTime(t.offset) + ')');
+    } catch (e) {
+      alert('Errore nell\'elaborazione della registrazione: ' + e);
+    }
+  };
+  mediaRec.start(1000);
+  state.recording = true;
+  state.recStartPos = recStart;
+  updateTransport();
+  await requestWakeLock();
+  startPlayback(recStart); // il missaggio riparte dal cursore mentre registro
+}
+function stopRecording() {
+  if (!state.recording) return;
+  try { if (mediaRec && mediaRec.state !== 'inactive') mediaRec.stop(); } catch (e) {}
+  state.recording = false;
+  stopPlayback(true);
+  state.playhead = state.recStartPos; // torno al punto di inizio registrazione
+  updateTransport();
+  drawTimeline();
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// RENDER MOVEMENTS LIST
-// ══════════════════════════════════════════════════════════════════════════════
-function renderMovements() {
-  const list = document.getElementById('expensesList');
-  const count = document.getElementById('expensesCount');
-  const panel = document.getElementById('balancePanel');
-  count.textContent = `Movements (${movements.length})`;
-
-  if (!movements.length) {
-    list.innerHTML = `<div class="empty-state"><div class="ei">🧾</div><p>No movements yet.<br>Add a cash advance to start.</p></div>`;
-    panel.style.display = 'none'; return;
+/* ---------- mixdown + encoder ---------- */
+async function mixdown() {
+  const total = projectDuration();
+  if (!(total > 0)) return null;
+  const SR = 44100;
+  const oc = new OfflineAudioContext(2, Math.ceil((total + 0.05) * SR), SR);
+  let any = false;
+  for (const t of state.tracks) {
+    if (t.muted) continue;
+    const buf = await getBuffer(t);
+    if (!buf) continue;
+    any = true;
+    const src = oc.createBufferSource();
+    src.buffer = buf;
+    const g = oc.createGain();
+    g.gain.value = t.volume;
+    src.connect(g); g.connect(oc.destination);
+    src.start(t.offset);
   }
+  if (!any) return null;
+  return await oc.startRendering();
+}
 
-  panel.style.display = 'block';
-  const { totalAdvEur, totalExpEur, finalEur, queues } = calcBalance();
-
-  // Balance panel
-  document.getElementById('bTotalAdvance').textContent = `€${totalAdvEur.toFixed(2)}`;
-  document.getElementById('bTotalExpense').textContent = `€${totalExpEur.toFixed(2)}`;
-  const bFinal = document.getElementById('bFinal');
-  document.getElementById('bFinalAmount').textContent = `€${Math.abs(finalEur).toFixed(2)}`;
-  if (finalEur > 0.005) { bFinal.className = 'balance-final positive'; document.getElementById('bFinalNote').textContent = 'Amount to be returned to Administration Office'; }
-  else if (finalEur < -0.005) { bFinal.className = 'balance-final negative'; document.getElementById('bFinalNote').textContent = 'Advance to be reimbursed to the operator'; }
-  else { bFinal.className = 'balance-final zero'; document.getElementById('bFinalNote').textContent = 'Balance settled'; }
-
-  // Currency FIFO details
-  const curKeys = Object.keys(queues).filter(c => queues[c].length > 0);
-  let curHtml = '';
-  for (const cur of curKeys) {
-    const tranches = queues[cur];
-    const total = tranches.reduce((s, t) => s + t.remaining, 0);
-    curHtml += `<div class="cur-tranche-group">
-      <div class="ctg-header"><span>${cur} Cash Balance</span><span>${total.toFixed(4)} ${cur}</span></div>
-      ${tranches.map(t => `<div class="tranche-row">
-        <span>Rate: <span class="tr-rate">${t.rate.toFixed(6)}</span></span>
-        <span class="tr-bal ${t.remaining < 0.0001 ? 'depleted' : ''}">${t.remaining.toFixed(4)} ${cur}</span>
-      </div>`).join('')}
-    </div>`;
-  }
-  document.getElementById('curSection').innerHTML = curKeys.length
-    ? `<div class="cur-section-title">Cash Balances by Tranche</div>${curHtml}` : '';
-
-  // Movement rows
-  const advances = movements.filter(m => m.type === 'advance');
-  const exchanges = movements.filter(m => m.type === 'exchange');
-  const expenses = movements.filter(m => m.type === 'expense');
-  let html = '';
-
-  if (advances.length) {
-    html += `<div class="list-divider">💰 Cash Advances</div>`;
-    html += advances.map(mv => {
-      const eur = parseFloat(mv.amountEur) || 0;
-      const rateStr = mv.currency !== 'EUR' ? `<span class="exp-rate">${parseFloat(mv.rate).toFixed(4)}</span>` : `<span class="exp-rate"></span>`;
-      return `<div class="exp-row type-advance" onclick="openModal(${mv.id})">
-        <span class="exp-num">#${String(movements.indexOf(mv) + 1).padStart(2, '0')}</span>
-        <span class="exp-type-badge badge-advance">ADV</span>
-        <span class="exp-date">${mv.date || '—'}</span>
-        <span class="exp-desc">${mv.description || 'Cash advance'}</span>
-        ${rateStr}
-        <span class="exp-eur pos">+€${eur.toFixed(2)}</span>
-        <span class="exp-arrow">›</span>
-      </div>`;
-    }).join('');
-  }
-
-  if (exchanges.length) {
-    html += `<div class="list-divider">↔ Currency Exchanges</div>`;
-    html += exchanges.map(mv => {
-      const rateStr = mv.rate ? `<span class="exp-rate">${parseFloat(mv.rate).toFixed(4)}</span>` : `<span class="exp-rate">—</span>`;
-      return `<div class="exp-row type-exchange" onclick="openModal(${mv.id})">
-        <span class="exp-num">#${String(movements.indexOf(mv) + 1).padStart(2, '0')}</span>
-        <span class="exp-type-badge badge-exchange">EXC</span>
-        <span class="exp-date">${mv.date || '—'}</span>
-        <span class="exp-desc">${mv.description || 'Currency exchange'}</span>
-        ${rateStr}
-        <span class="exp-eur exc" style="min-width:90px;font-size:.8rem">${mv.fromAmount || '?'} ${mv.fromCurrency}→${mv.toAmount || '?'} ${mv.toCurrency}</span>
-        <span class="exp-arrow">›</span>
-      </div>`;
-    }).join('');
-  }
-
-  if (expenses.length) {
-    html += `<div class="list-divider">🧾 Expenses</div>`;
-    html += expenses.map((mv, _) => {
-      const mvIdx = movements.indexOf(mv);
-      const isFree = mv.rateOverride || mv.paymentMethod !== 'Cash';
-      const sliceData = !isFree ? getFifoSlices(mvIdx) : null;
-      const totalEur = sliceData ? sliceData.totalEur : (parseFloat(mv.amountEur) || 0);
-      const desc = mv.description || mv.budgetLine || '—';
-      const hasR = mv.receipts && mv.receipts.length > 0;
-      const rateStr = mv.currency !== 'EUR'
-        ? `<span class="exp-rate" title="${isFree ? 'Manual/Card rate' : 'FIFO rate'}">${parseFloat(mv.rate).toFixed(4)}${isFree ? '*' : ''}</span>`
-        : `<span class="exp-rate"></span>`;
-      const payIcon = mv.paymentMethod === 'Cash' ? '💵' : mv.paymentMethod === 'Personal Card' ? '💳' : '🏢';
-      const multiTranche = sliceData && sliceData.slices.length > 1;
-
-      let rowHtml = `<div class="exp-row ${isFree ? 'type-expense free' : 'type-expense'}" onclick="openModal(${mv.id})" id="exprow-${mv.id}">
-        <span class="exp-num">#${String(mvIdx + 1).padStart(2, '0')}</span>
-        <span class="exp-type-badge ${isFree ? 'badge-free' : 'badge-expense'}" title="${mv.paymentMethod}">${payIcon}</span>
-        <span class="exp-date">${mv.date || '—'}</span>
-        <span class="exp-desc">${desc}</span>
-        ${rateStr}
-        ${hasR ? '<span class="exp-rcpt">🧾</span>' : ''}
-        <span class="exp-eur neg">-€${totalEur.toFixed(2)}</span>
-        <span class="exp-arrow">›</span>
-      </div>`;
-
-      if (multiTranche) {
-        rowHtml += `<div class="exp-multitranche">
-          <strong style="font-size:10px;display:block;margin-bottom:3px">Multi-tranche breakdown:</strong>
-          ${sliceData.slices.map((sl, i) => `<div class="mt-row">
-            <span>Tranche ${i + 1}: ${sl.amount.toFixed(4)} ${mv.currency} × ${sl.rate.toFixed(6)}</span>
-            <span>€${sl.eur.toFixed(2)}</span>
-          </div>`).join('')}
-          <div class="mt-row" style="font-weight:700;border-top:1px solid rgba(212,134,10,.3);margin-top:3px;padding-top:3px">
-            <span>Total</span><span>€${sliceData.totalEur.toFixed(2)}</span>
-          </div>
-        </div>`;
+let lameReady = null;
+async function getLame() {
+  if (window.lamejs && window.lamejs.Mp3Encoder) return window.lamejs;
+  if (!lameReady) {
+    lameReady = (async function () {
+      // 1) dalla cache locale (offline dopo la prima volta)
+      const cached = await metaGet('lamejs');
+      if (cached) {
+        try { (new Function(cached))(); if (window.lamejs && window.lamejs.Mp3Encoder) return window.lamejs; } catch (e) {}
       }
-
-      return rowHtml;
-    }).join('');
-  }
-
-  list.innerHTML = html;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MODAL
-// ══════════════════════════════════════════════════════════════════════════════
-function openModal(id) { renderModal(id); document.getElementById('expModal').classList.add('open'); }
-function closeExpModal() { document.getElementById('expModal').classList.remove('open'); }
-document.getElementById('expModal').addEventListener('click', function (e) { if (e.target === this) closeExpModal(); });
-
-function renderModal(id) {
-  const mv = movements.find(m => m.id === id); if (!mv) return;
-  const idx = movements.indexOf(mv) + 1;
-  const typeLabel = mv.type === 'advance' ? '💰 Cash Advance' : mv.type === 'exchange' ? '↔ Currency Exchange' : '🧾 Expense';
-  document.getElementById('expModalTitle').textContent = `${typeLabel} — #${String(idx).padStart(2, '0')}`;
-
-  let body = '';
-
-  // ── ADVANCE ──
-  if (mv.type === 'advance') {
-    body = `
-    <div class="form-row c2">
-      <div class="form-group"><label>Date</label><input type="date" value="${mv.date || ''}" onchange="updField(${id},'date',this.value)"></div>
-      <div class="form-group"><label>Currency</label><select onchange="updField(${id},'currency',this.value)">${CURRENCIES.map(c => `<option value="${c}" ${c === mv.currency ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-    </div>
-    <div class="form-row c2">
-      <div class="form-group"><label>Amount received</label><input type="number" step="0.01" value="${mv.amount || ''}" placeholder="0.00" onchange="updField(${id},'amount',this.value)"></div>
-      <div class="form-group"><label>Rate to EUR</label>
-        <div class="rate-row"><input type="number" step="0.000001" id="ri-${id}" value="${mv.rate || ''}" placeholder="1.00" onchange="updField(${id},'rate',this.value)">
-        <button class="btn-fetch" id="fbtn-${id}" onclick="fetchRate(${id})" ${!isOnline ? 'disabled' : ''}>Fetch</button></div>
-      </div>
-    </div>
-    <div style="text-align:right;margin:-4px 0 10px;font-family:'DM Serif Display',serif;font-size:1.1rem;color:#1a6e3c" id="meur-${id}">${mv.amountEur ? `€${parseFloat(mv.amountEur).toFixed(2)}` : '€—'}</div>
-    <div class="form-group" style="margin-bottom:14px"><label>Description / Source</label><input type="text" value="${mv.description || ''}" placeholder="e.g., Project advance from HQ" onchange="updField(${id},'description',this.value)"></div>`;
-  }
-
-  // ── EXCHANGE ──
-  if (mv.type === 'exchange') {
-    body = `
-    <div class="form-row c2">
-      <div class="form-group"><label>Date</label><input type="date" value="${mv.date || ''}" onchange="updField(${id},'date',this.value)"></div>
-      <div class="form-group"><label>Description</label><input type="text" value="${mv.description || ''}" placeholder="e.g., Airport exchange" onchange="updField(${id},'description',this.value)"></div>
-    </div>
-    <div class="form-row c2">
-      <div class="form-group"><label>From Currency</label><select onchange="updField(${id},'fromCurrency',this.value)">${CURRENCIES.map(c => `<option value="${c}" ${c === mv.fromCurrency ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Amount given</label><input type="number" step="0.01" id="exfrom-${id}" value="${mv.fromAmount || ''}" placeholder="0.00" onchange="updField(${id},'fromAmount',this.value)"></div>
-    </div>
-    <div class="form-row c2">
-      <div class="form-group"><label>To Currency</label><select onchange="updField(${id},'toCurrency',this.value)">${CURRENCIES.map(c => `<option value="${c}" ${c === mv.toCurrency ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-      <div class="form-group"><label>Amount received</label><input type="number" step="0.01" id="exto-${id}" value="${mv.toAmount || ''}" placeholder="0.00" onchange="updField(${id},'toAmount',this.value)"></div>
-    </div>
-    <div class="form-group" style="margin-bottom:14px"><label>Exchange Rate (1 From → X To)</label>
-      <div class="rate-row"><input type="number" step="0.000001" id="ri-${id}" value="${mv.rate || ''}" placeholder="auto" onchange="updField(${id},'rate',this.value)">
-      <button class="btn-fetch" id="fbtn-${id}" onclick="fetchRate(${id})" ${!isOnline ? 'disabled' : ''}>Fetch</button></div>
-    </div>`;
-  }
-
-  // ── EXPENSE ──
-  if (mv.type === 'expense') {
-    const mvIdx = movements.indexOf(mv);
-    const isFree = mv.rateOverride || mv.paymentMethod !== 'Cash';
-    const sliceData = !isFree ? getFifoSlices(mvIdx) : null;
-    const displayEur = sliceData ? sliceData.totalEur : (parseFloat(mv.amountEur) || 0);
-
-    // FIFO info box
-    let fifoBox = '';
-    if (mv.paymentMethod === 'Cash' && !mv.rateOverride && sliceData) {
-      if (sliceData.slices.length > 1) {
-        fifoBox = `<div class="fifo-info"><strong>⚖ FIFO Multi-tranche Allocation</strong>
-          ${sliceData.slices.map((sl, i) => `<div class="fifo-row"><span>Tranche ${i + 1}: ${sl.amount.toFixed(4)} ${mv.currency} × ${sl.rate.toFixed(6)}</span><span>€${sl.eur.toFixed(2)}</span></div>`).join('')}
-          <div class="fifo-row" style="font-weight:700;border-top:1px solid rgba(212,134,10,.3);margin-top:3px;padding-top:3px"><span>Total EUR</span><span>€${sliceData.totalEur.toFixed(2)}</span></div>
-        </div>`;
-      } else if (sliceData.slices.length === 1) {
-        fifoBox = `<div class="fifo-info" style="background:#f0faf4;border-color:rgba(45,90,61,.2);color:var(--accent)"><strong>✓ FIFO Rate Applied</strong>
-          <div class="fifo-row"><span>Rate: ${sliceData.slices[0].rate.toFixed(6)}</span><span>€${sliceData.totalEur.toFixed(2)}</span></div>
-        </div>`;
+      // 2) dai CDN (una sola volta, poi va in cache)
+      const urls = [
+        'https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js',
+        'https://unpkg.com/lamejs@1.2.0/lame.min.js',
+        'https://cdn.jsdelivr.net/npm/@breezystack/lamejs@1.2.7/dist/lamejs.iife.min.js'
+      ];
+      for (const u of urls) {
+        try {
+          const resp = await fetch(u);
+          if (!resp.ok) continue;
+          const text = await resp.text();
+          (new Function(text))();
+          if (window.lamejs && window.lamejs.Mp3Encoder) { await metaSet('lamejs', text); return window.lamejs; }
+        } catch (e) {}
       }
-    }
-    if (isFree && mv.paymentMethod !== 'Cash') {
-      fifoBox = `<div class="fifo-info" style="background:#fff8e6;border-color:#f0c060;color:var(--warn)"><strong>ℹ ${mv.paymentMethod} — Free Movement</strong><div class="fifo-row"><span>Does not consume FIFO cash balance</span></div></div>`;
-    }
-    if (mv.rateOverride && mv.paymentMethod === 'Cash') {
-      fifoBox = `<div class="fifo-info"><strong>⚠ Manual Rate Override</strong>
-        <div class="fifo-row"><span>This expense uses a manual rate and does not consume FIFO balance.</span></div>
-        <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="resetRateToFifo(${id})">↺ Reset to FIFO rate</button>
-      </div>`;
-    }
-
-    const rcptsHtml = `<div class="receipts-grid">
-      ${(mv.receipts || []).map((r, ri) => `<div class="rcpt-wrap"><img src="${r}" class="rcpt-thumb" onclick="previewImg('${id}',${ri})"><button class="rcpt-del" onclick="removeRcpt(${id},${ri})">✕</button></div>`).join('')}
-      <div class="rcpt-add"><input type="file" accept="image/*,.pdf" onchange="addRcptToExp(${id},this.files)">+</div>
-    </div>`;
-
-    body = `
-    <div class="form-group" style="margin-bottom:12px">
-      <label>Payment Method</label>
-      <div class="payment-pills">
-        ${PAY_METHODS.map(p => `<button class="payment-pill ${mv.paymentMethod === p ? 'active' : ''} ${p !== 'Cash' ? 'free' : ''}" onclick="setPayment(${id},'${p}')">${p === 'Cash' ? '💵' : p === 'Personal Card' ? '💳' : '🏢'} ${p}</button>`).join('')}
-      </div>
-    </div>
-    ${fifoBox}
-    <div class="form-row c2">
-      <div class="form-group"><label>Date</label><input type="date" value="${mv.date || ''}" onchange="updField(${id},'date',this.value)"></div>
-      <div class="form-group"><label>Currency</label><select onchange="updField(${id},'currency',this.value)">${CURRENCIES.map(c => `<option value="${c}" ${c === mv.currency ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-    </div>
-    <div class="form-row c2">
-      <div class="form-group"><label>Amount (local)</label><input type="number" step="0.01" value="${mv.amount || ''}" placeholder="0.00" onchange="updField(${id},'amount',this.value)"></div>
-      <div class="form-group"><label>Rate to EUR ${isFree ? '(manual)' : '(FIFO)'}</label>
-        <div class="rate-row">
-          <input type="number" step="0.000001" id="ri-${id}" value="${mv.rate || ''}" placeholder="1.00" onchange="updField(${id},'rate',this.value)" ${!isFree && mv.paymentMethod === 'Cash' ? 'style="background:#f0faf4"' : ''}>
-          <button class="btn-fetch" id="fbtn-${id}" onclick="fetchRate(${id})" ${!isOnline ? 'disabled' : ''}>Fetch</button>
-        </div>
-      </div>
-    </div>
-    <div style="text-align:right;margin:-4px 0 10px;font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--danger)" id="meur-${id}">€${displayEur.toFixed(2)}</div>
-    <div class="form-row c2">
-      <div class="form-group"><label>Budget Line</label><input type="text" value="${mv.budgetLine || ''}" placeholder="e.g., Travel" onchange="updField(${id},'budgetLine',this.value)"></div>
-      <div class="form-group"><label>Document Type</label><select onchange="updField(${id},'docType',this.value)">${['Receipt', 'Invoice', 'Ticket', 'Bill', 'Contract', 'Other'].map(d => `<option value="${d}" ${d === mv.docType ? 'selected' : ''}>${d}</option>`).join('')}</select></div>
-    </div>
-    <div class="form-group" style="margin-bottom:14px"><label>Description</label><input type="text" value="${mv.description || ''}" placeholder="Brief description" onchange="updField(${id},'description',this.value)"></div>
-    <div class="form-group" style="margin-bottom:14px"><label>Receipts / Documents</label>${rcptsHtml}</div>`;
+      throw new Error('encoder non raggiungibile');
+    })();
+    lameReady.catch(function () { lameReady = null; });
   }
-
-  body += `<button class="btn btn-danger btn-sm" onclick="removeMovement(${id})">🗑 Delete</button>`;
-  document.getElementById('expModalBody').innerHTML = body;
+  return lameReady;
 }
-
-function setPayment(id, method) {
-  const mv = movements.find(m => m.id === id); if (!mv) return;
-  mv.paymentMethod = method;
-  if (method !== 'Cash') { mv.rateOverride = true; }
-  else {
-    // Reset to FIFO rate when switching back to cash
-    const idx = movements.indexOf(mv);
-    if (!mv.rateOverride) mv.rate = getSuggestedRate(mv.currency, idx);
-  }
-  renderMovements(); autoSave(); renderModal(id);
-}
-
-async function addRcptToExp(id, files) { for (const f of Array.from(files)) await processFile(f, id); }
-function removeRcpt(id, ri) { const mv = movements.find(m => m.id === id); if (!mv) return; mv.receipts.splice(ri, 1); renderMovements(); renderModal(id); autoSave(); }
-function previewImg(id, ri) { const mv = movements.find(m => m.id === id); if (!mv || !mv.receipts[ri]) return; document.getElementById('imgPrevSrc').src = mv.receipts[ri]; document.getElementById('imgPrev').classList.add('open'); }
-function closeImgPrev() { document.getElementById('imgPrev').classList.remove('open'); }
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SIGNATURE
-// ══════════════════════════════════════════════════════════════════════════════
-function initSig() {
-  const canvas = document.getElementById('sigCanvas');
-  const w = canvas.offsetWidth; if (!w || w < 20) { setTimeout(initSig, 100); return; }
-  canvas.width = w; canvas.height = 180;
-  const ctx = canvas.getContext('2d');
-  ctx.strokeStyle = '#1a1a18'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  if (signatureData) { const img = new Image(); img.onload = () => ctx.drawImage(img, 0, 0, w, 180); img.src = signatureData; }
-  if (sigReady) return; sigReady = true;
-  let drawing = false, lx = 0, ly = 0;
-  function pos(e) { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-  canvas.addEventListener('pointerdown', e => { e.preventDefault(); try { canvas.setPointerCapture(e.pointerId); } catch (_) { } drawing = true; [lx, ly] = pos(e); ctx.beginPath(); ctx.arc(lx, ly, 1.2, 0, Math.PI * 2); ctx.fillStyle = '#1a1a18'; ctx.fill(); }, { passive: false });
-  canvas.addEventListener('pointermove', e => { e.preventDefault(); if (!drawing) return; const [x, y] = pos(e); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(x, y); ctx.stroke(); lx = x; ly = y; }, { passive: false });
-  canvas.addEventListener('pointerup', () => drawing = false);
-  canvas.addEventListener('pointerleave', () => drawing = false);
-  canvas.addEventListener('pointercancel', () => drawing = false);
-}
-function clearSig() { const c = document.getElementById('sigCanvas'); c.getContext('2d').clearRect(0, 0, c.width, c.height); sigReady = false; signatureData = null; document.getElementById('sigStatus').textContent = 'Not signed'; setTimeout(initSig, 50); autoSave(); }
-function saveSig() { signatureData = document.getElementById('sigCanvas').toDataURL('image/png'); document.getElementById('sigStatus').textContent = '✓ Signature saved'; showToast('✓ Signature saved'); autoSave(); }
-
-// ══════════════════════════════════════════════════════════════════════════════
-// EXPORT PDF
-// ══════════════════════════════════════════════════════════════════════════════
-async function exportPDF() {
-  if (!movements.length) { showToast('⚠ No movements to export'); return; }
-  if (!signatureData && !confirm('No signature saved. Export anyway?')) return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const M = 14, PW = 210, CW = PW - M * 2;
-  const g = id => document.getElementById(id).value || '';
-  const rn = g('reportName') || 'Expense Report', pn = g('personName'), proj = g('projectName'), pid = g('projectId'), sd = g('startDate'), ed = g('endDate');
-  const countries = missionCountries.filter(Boolean).join(', ');
-
-  doc.setFillColor(26, 31, 46); doc.rect(0, 0, PW, 36, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFontSize(16); doc.setFont('helvetica', 'bold'); doc.text(rn, M, 13);
-  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-  const meta = [pn && `By: ${pn}`, proj && `Project: ${proj}`, pid && `ID: ${pid}`, countries && `Countries: ${countries}`, (sd || ed) && `Period: ${sd} – ${ed}`].filter(Boolean).join('   ');
-  doc.text(meta, M, 22); doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, M, 29);
-  doc.setTextColor(0, 0, 0);
-
-  const { totalAdvEur, totalExpEur, finalEur, queues } = calcBalance();
-  let startY = 42;
-
-  // Advances
-  const advances = movements.filter(m => m.type === 'advance');
-  if (advances.length) {
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text('Cash Advances', M, startY); startY += 3;
-    doc.autoTable({ startY, head: [['#', 'Date', 'Amount', 'Currency', 'Rate', 'EUR', 'Description']], body: advances.map((m, i) => [i + 1, m.date || '', m.amount || '', m.currency || '', m.rate ? parseFloat(m.rate).toFixed(6) : '', m.amountEur ? `€${parseFloat(m.amountEur).toFixed(2)}` : '', m.description || '']), styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [20, 100, 60], textColor: 255, fontStyle: 'bold' }, margin: { left: M, right: M } });
-    startY = doc.lastAutoTable.finalY + 6;
-  }
-
-  // Exchanges
-  const exchanges = movements.filter(m => m.type === 'exchange');
-  if (exchanges.length) {
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text('Currency Exchanges', M, startY); startY += 3;
-    doc.autoTable({ startY, head: [['#', 'Date', 'From Amt', 'From', 'To Amt', 'To', 'Rate', 'Description']], body: exchanges.map((m, i) => [i + 1, m.date || '', m.fromAmount || '', m.fromCurrency || '', m.toAmount || '', m.toCurrency || '', m.rate ? parseFloat(m.rate).toFixed(6) : '', m.description || '']), styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [29, 78, 216], textColor: 255, fontStyle: 'bold' }, margin: { left: M, right: M } });
-    startY = doc.lastAutoTable.finalY + 6;
-  }
-
-  // Expenses
-  const expenses = movements.filter(m => m.type === 'expense');
-  if (expenses.length) {
-    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.text('Expenses', M, startY); startY += 3;
-    const expRows = [];
-    for (let i = 0; i < expenses.length; i++) {
-      const mv = expenses[i]; const mvIdx = movements.indexOf(mv);
-      const isFree = mv.rateOverride || mv.paymentMethod !== 'Cash';
-      const sliceData = !isFree ? getFifoSlices(mvIdx) : null;
-      const totalEur = sliceData ? sliceData.totalEur : (parseFloat(mv.amountEur) || 0);
-      const rateDisplay = sliceData && sliceData.slices.length > 1 ? 'multi' : parseFloat(mv.rate).toFixed(6);
-      expRows.push([i + 1, mv.date || '', mv.amount || '', mv.currency || '', rateDisplay, `€${totalEur.toFixed(2)}`, mv.paymentMethod || 'Cash', mv.budgetLine || '', mv.docType || '', mv.description || '']);
-      // Multi-tranche sub-rows
-      if (sliceData && sliceData.slices.length > 1) {
-        sliceData.slices.forEach((sl, si) => {
-          expRows.push(['', '', `  T${si + 1}: ${sl.amount.toFixed(4)}`, mv.currency, sl.rate.toFixed(6), `€${sl.eur.toFixed(2)}`, '', '', '', '']);
-        });
+function encodeMp3(buffer, kbps) {
+  return getLame().then(function (lame) {
+    const ch = Math.min(2, buffer.numberOfChannels);
+    const sr = buffer.sampleRate;
+    const enc = new lame.Mp3Encoder(ch, sr, kbps || 192);
+    const left = buffer.getChannelData(0);
+    const right = ch === 2 ? buffer.getChannelData(1) : left;
+    const l16 = new Int16Array(1152), r16 = new Int16Array(1152);
+    const parts = [];
+    for (let i = 0; i < left.length; i += 1152) {
+      const n = Math.min(1152, left.length - i);
+      for (let k = 0; k < n; k++) {
+        let a = left[i + k]; let b = right[i + k];
+        if (a > 1) a = 1; if (a < -1) a = -1; if (b > 1) b = 1; if (b < -1) b = -1;
+        l16[k] = a < 0 ? a * 0x8000 : a * 0x7FFF;
+        r16[k] = b < 0 ? b * 0x8000 : b * 0x7FFF;
       }
+      const d = ch === 2 ? enc.encodeBuffer(l16.subarray(0, n), r16.subarray(0, n)) : enc.encodeBuffer(l16.subarray(0, n));
+      if (d && d.length) parts.push(d);
     }
-    expRows.push(['', '', '', '', '', `€${totalExpEur.toFixed(2)}`, 'TOTAL', '', '', '']);
-    doc.autoTable({ startY, head: [['#', 'Date', 'Amount', 'Cur', 'Rate', 'EUR', 'Method', 'Budget', 'Doc', 'Description']], body: expRows, styles: { fontSize: 7, cellPadding: 2 }, headStyles: { fillColor: [45, 90, 61], textColor: 255, fontStyle: 'bold' }, alternateRowStyles: { fillColor: [248, 246, 242] }, columnStyles: { 9: { cellWidth: 28 } }, margin: { left: M, right: M } });
-    startY = doc.lastAutoTable.finalY + 6;
-  }
-
-  // Financial summary box
-  if (startY > 240) { doc.addPage(); startY = 14; }
-  doc.setFillColor(26, 31, 46); doc.rect(M, startY, CW, 30, 'F');
-  doc.setTextColor(255, 255, 255); doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.text('FINANCIAL SUMMARY', M + 4, startY + 6);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-  doc.text(`Total Advances: €${totalAdvEur.toFixed(2)}   Total Expenses: €${totalExpEur.toFixed(2)}`, M + 4, startY + 13);
-  const balNote = finalEur > 0.005 ? `BALANCE: €${finalEur.toFixed(2)} — Amount to be returned to Administration Office` : finalEur < -0.005 ? `BALANCE: €${Math.abs(finalEur).toFixed(2)} — Advance to be reimbursed to the operator` : 'BALANCE: €0.00 — Settled';
-  doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.text(balNote, M + 4, startY + 20);
-  doc.setTextColor(0, 0, 0); startY += 36;
-
-  // Currency tranche balances
-  const curKeys = Object.keys(queues).filter(c => queues[c].length > 0);
-  if (curKeys.length) {
-    if (startY > 255) { doc.addPage(); startY = 14; }
-    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.text('Cash Balances by Tranche:', M, startY); startY += 5;
-    doc.setFont('helvetica', 'normal');
-    for (const cur of curKeys) {
-      queues[cur].forEach((t, i) => { doc.text(`  ${cur} Tranche ${i + 1}: ${t.remaining.toFixed(4)} remaining (rate: ${t.rate.toFixed(6)})`, M, startY); startY += 4; });
-    }
-    startY += 4;
-  }
-
-  // Signature
-  if (signatureData) {
-    if (startY > 255) { doc.addPage(); startY = 14; }
-    doc.setFontSize(8); doc.setTextColor(120, 120, 120); doc.text('Signature:', M, startY); startY += 3;
-    doc.addImage(signatureData, 'PNG', M, startY, 55, 18); startY += 20;
-    doc.setFontSize(9); doc.setTextColor(0, 0, 0); doc.text(pn || 'Reporting Person', M, startY); startY += 8;
-  }
-
-  // Receipt images
-  const imgs = expenses.flatMap((mv, i) => (mv.receipts || []).map(r => ({ r, label: `Exp #${movements.indexOf(mv) + 1} — ${mv.date || ''} — ${mv.description || ''}` }))).filter(x => !x.r.startsWith('data:application/pdf'));
-  if (imgs.length) {
-    if (startY > 240) { doc.addPage(); startY = 14; }
-    doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.text('Attached Documents', M, startY); startY += 7; doc.setFont('helvetica', 'normal');
-    for (const { r, label } of imgs) {
-      const { w: iw, h: ih } = await imgDims(r);
-      let dw = CW, dh = CW * (ih / iw); if (dh > 110) { dh = 110; dw = 110 * (iw / ih); }
-      if (startY + dh + 12 > 282) { doc.addPage(); startY = 14; }
-      doc.setFontSize(7); doc.setTextColor(130, 130, 130); doc.text(label, M, startY); startY += 3;
-      const fmt = r.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-      try { doc.addImage(r, fmt, M, startY, dw, dh); } catch (e) { try { doc.addImage(r, fmt === 'PNG' ? 'JPEG' : 'PNG', M, startY, dw, dh); } catch (_) { } }
-      startY += dh + 8; doc.setTextColor(0, 0, 0);
-    }
-  }
-
-  doc.save(`${rn.replace(/\s+/g, '_')}_expense_report.pdf`);
-  showToast('✓ PDF exported');
+    const fin = enc.flush();
+    if (fin && fin.length) parts.push(fin);
+    return new Blob(parts, { type: 'audio/mpeg' });
+  });
 }
-function imgDims(src) { return new Promise(res => { const i = new Image(); i.onload = () => res({ w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => res({ w: 1, h: 1 }); i.src = src; }); }
-
-// ══════════════════════════════════════════════════════════════════════════════
-// EXPORT ODS
-// ══════════════════════════════════════════════════════════════════════════════
-async function exportODS() {
-  if (!movements.length) { showToast('⚠ No movements to export'); return; }
-  const g = id => document.getElementById(id).value || '';
-  const rn = g('reportName') || 'Expense Report';
-  const { totalAdvEur, totalExpEur, finalEur, queues } = calcBalance();
-  const xe = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const hdr = v => `<table:table-cell table:style-name="ce-h"><text:p>${xe(v)}</text:p></table:table-cell>`;
-  const cell = v => `<table:table-cell office:value-type="string"><text:p>${xe(v)}</text:p></table:table-cell>`;
-  const num = v => { const n = parseFloat(v); return isNaN(n) ? `<table:table-cell office:value-type="string"><text:p></text:p></table:table-cell>` : `<table:table-cell office:value-type="float" office:value="${n}"><text:p>${n}</text:p></table:table-cell>`; };
-  const row = cells => `<table:table-row>${cells.join('')}</table:table-row>`;
-  const empty = () => `<table:table-row><table:table-cell/></table:table-row>`;
-
-  let tr = '';
-  tr += row([hdr('EXPENSE REPORT')]); tr += row([cell('Report:'), cell(rn)]); tr += row([cell('Person:'), cell(g('personName'))]); tr += row([cell('Project:'), cell(g('projectName'))]); tr += row([cell('ID:'), cell(g('projectId'))]); tr += row([cell('Countries:'), cell(missionCountries.filter(Boolean).join(', '))]); tr += row([cell('Period:'), cell(`${g('startDate')} – ${g('endDate')}`)]); tr += row([cell('Generated:'), cell(new Date().toLocaleDateString('en-GB'))]); tr += empty();
-
-  const advances = movements.filter(m => m.type === 'advance');
-  if (advances.length) {
-    tr += row([hdr('CASH ADVANCES')]);
-    tr += row(['#', 'Date', 'Amount', 'Currency', 'Rate to EUR', 'EUR', 'Description'].map(hdr));
-    advances.forEach((m, i) => { tr += row([cell(i + 1), cell(m.date || ''), num(m.amount), cell(m.currency || ''), num(m.rate), num(m.amountEur), cell(m.description || '')]); });
-    tr += empty();
+function encodeWav(buffer) {
+  const ch = Math.min(2, buffer.numberOfChannels);
+  const sr = buffer.sampleRate;
+  const n = buffer.length;
+  const bytes = 44 + n * ch * 2;
+  const ab = new ArrayBuffer(bytes);
+  const dv = new DataView(ab);
+  function wstr(off, s) { for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i)); }
+  wstr(0, 'RIFF'); dv.setUint32(4, bytes - 8, true); wstr(8, 'WAVE');
+  wstr(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, ch, true);
+  dv.setUint32(24, sr, true); dv.setUint32(28, sr * ch * 2, true); dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true);
+  wstr(36, 'data'); dv.setUint32(40, n * ch * 2, true);
+  const chans = [];
+  for (let c = 0; c < ch; c++) chans.push(buffer.getChannelData(c));
+  let off = 44;
+  for (let i = 0; i < n; i++) {
+    for (let c = 0; c < ch; c++) {
+      let s = chans[c][i];
+      if (s > 1) s = 1; if (s < -1) s = -1;
+      dv.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      off += 2;
+    }
   }
+  return new Blob([ab], { type: 'audio/wav' });
+}
 
-  const exchanges = movements.filter(m => m.type === 'exchange');
-  if (exchanges.length) {
-    tr += row([hdr('CURRENCY EXCHANGES')]);
-    tr += row(['#', 'Date', 'From Amount', 'From Currency', 'To Amount', 'To Currency', 'Rate', 'Description'].map(hdr));
-    exchanges.forEach((m, i) => { tr += row([cell(i + 1), cell(m.date || ''), num(m.fromAmount), cell(m.fromCurrency || ''), num(m.toAmount), cell(m.toCurrency || ''), num(m.rate), cell(m.description || '')]); });
-    tr += empty();
+/* ---------- CRUD ---------- */
+async function saveTrack(t) { await idbPut('tracks', t); }
+async function deleteTrackFull(id) {
+  await idbDelete('tracks', id);
+  state.buffers.delete(id);
+}
+async function loadProjects() { state.projects = await idbAll('projects'); }
+async function openProject(p) {
+  state.current = p;
+  state.tracks = await idbByIndex('tracks', 'projectId', p.id);
+  state.tracks.sort(function (a, b) { return a.offset - b.offset || a.createdAt - b.createdAt; });
+  state.buffers.clear();
+  state.playhead = 0; state.playing = false; state.recording = false;
+  $('viewProjects').classList.add('hidden');
+  $('viewProject').classList.remove('hidden');
+  $('appTitle').textContent = '🎛 ' + p.name;
+  renderTracks();
+  drawTimeline();
+  updateTransport();
+}
+
+/* ---------- UI: progetti ---------- */
+function renderProjects() {
+  const ul = $('projectList');
+  ul.innerHTML = '';
+  const list = state.projects.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+  if (!list.length) {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="meta">Nessun progetto. Creane uno qui sopra per iniziare 🎙</span>';
+    ul.appendChild(li);
+    return;
   }
+  for (const p of list) {
+    const li = document.createElement('li');
+    const nm = document.createElement('span');
+    nm.className = 'pname'; nm.textContent = p.name;
+    const open = document.createElement('button');
+    open.className = 'primary small'; open.textContent = 'Apri';
+    open.onclick = function () { openProject(p); };
+    const ren = document.createElement('button');
+    ren.className = 'small'; ren.textContent = '✏️';
+    ren.title = 'Rinomina';
+    ren.onclick = async function () {
+      const nn = prompt('Nuovo nome del progetto:', p.name);
+      if (nn === null) return;
+      p.name = nn.trim() || p.name;
+      await idbPut('projects', p);
+      renderProjects();
+    };
+    const del = document.createElement('button');
+    del.className = 'small danger'; del.textContent = '🗑';
+    del.title = 'Elimina progetto e sue tracce';
+    del.onclick = async function () {
+      if (!confirm('Eliminare "' + p.name + '" con TUTTE le sue tracce?')) return;
+      const trs = await idbByIndex('tracks', 'projectId', p.id);
+      for (const t of trs) await idbDelete('tracks', t.id);
+      await idbDelete('projects', p.id);
+      await loadProjects();
+      renderProjects();
+    };
+    const meta = document.createElement('span');
+    meta.className = 'meta';
+    meta.textContent = 'creato il ' + new Date(p.createdAt).toLocaleDateString('it-IT');
+    li.appendChild(nm); li.appendChild(open); li.appendChild(ren); li.appendChild(del); li.appendChild(meta);
+    ul.appendChild(li);
+  }
+}
+async function createProject() {
+  const name = ($('newProjName').value || '').trim();
+  if (!name) { alert('Scrivi prima un nome per il progetto.'); return; }
+  const p = { id: uid(), name: name, createdAt: Date.now() };
+  try { await idbPut('projects', p); }
+  catch (e) { alert('Salvataggio non riuscito: ' + e); return; }
+  $('newProjName').value = '';
+  await loadProjects();
+  renderProjects();
+  openProject(p);
+}
 
-  const expenses = movements.filter(m => m.type === 'expense');
-  if (expenses.length) {
-    tr += row([hdr('EXPENSES')]);
-    tr += row(['#', 'Date', 'Amount', 'Currency', 'Rate', 'EUR', 'Payment Method', 'Budget Line', 'Doc Type', 'Description', 'FIFO Tranche Info'].map(hdr));
-    for (let i = 0; i < expenses.length; i++) {
-      const mv = expenses[i]; const mvIdx = movements.indexOf(mv);
-      const isFree = mv.rateOverride || mv.paymentMethod !== 'Cash';
-      const sliceData = !isFree ? getFifoSlices(mvIdx) : null;
-      const totalEur = sliceData ? sliceData.totalEur : (parseFloat(mv.amountEur) || 0);
-      const trancheInfo = sliceData && sliceData.slices.length > 1
-        ? sliceData.slices.map((sl, si) => `T${si + 1}: ${sl.amount.toFixed(4)} × ${sl.rate.toFixed(6)} = €${sl.eur.toFixed(2)}`).join(' | ')
-        : (sliceData ? `Rate: ${sliceData.slices[0]?.rate.toFixed(6)}` : `Manual rate: ${mv.rate}`);
-      tr += row([cell(i + 1), cell(mv.date || ''), num(mv.amount), cell(mv.currency || ''), num(isFree ? mv.rate : (sliceData?.slices[0]?.rate || mv.rate)), num(totalEur.toFixed(2)), cell(mv.paymentMethod || 'Cash'), cell(mv.budgetLine || ''), cell(mv.docType || ''), cell(mv.description || ''), cell(trancheInfo)]);
-      if (sliceData && sliceData.slices.length > 1) {
-        sliceData.slices.forEach((sl, si) => {
-          tr += row([cell(''), cell(''), cell(`  Tranche ${si + 1}`), cell(mv.currency), num(sl.rate), num(sl.eur.toFixed(2)), cell(''), cell(''), cell(''), cell(`${sl.amount.toFixed(4)} ${mv.currency}`), cell('')]);
-        });
+/* ---------- UI: tracce ---------- */
+function renderTracks() {
+  const list = $('trackList');
+  list.innerHTML = '';
+  if (!state.tracks.length) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.textContent = 'Nessuna traccia. Importa un file audio o registra con ● REC.';
+    list.appendChild(p);
+    return;
+  }
+  state.tracks.forEach(function (t, idx) {
+    const div = document.createElement('div');
+    div.className = 'track';
+
+    const row1 = document.createElement('div');
+    row1.className = 'trow1';
+    const icon = document.createElement('span');
+    icon.textContent = t.kind === 'rec' ? '🎙' : '🎵';
+    icon.style.color = PALETTE[idx % PALETTE.length];
+    icon.style.fontSize = '1.2rem';
+    const nm = document.createElement('span');
+    nm.className = 'tname' + (t.muted ? ' muted' : '');
+    nm.textContent = t.name;
+    nm.style.cursor = 'pointer';
+    nm.title = 'Tocca per rinominare';
+    nm.onclick = async function () {
+      const nn = prompt('Nome traccia:', t.name);
+      if (nn === null) return;
+      t.name = nn.trim() || t.name;
+      await saveTrack(t);
+      renderTracks();
+    };
+    row1.appendChild(icon); row1.appendChild(nm);
+
+    const mute = document.createElement('button');
+    mute.className = 'small';
+    mute.textContent = t.muted ? '🔇 Riattiva' : '🔈 Mute';
+    mute.onclick = async function () {
+      t.muted = !t.muted;
+      await saveTrack(t);
+      if (state.playing) { const pos = currentPlayhead(); stopPlayback(false); startPlayback(pos); }
+      renderTracks(); drawTimeline();
+    };
+    row1.appendChild(mute);
+    div.appendChild(row1);
+
+    const row2 = document.createElement('div');
+    row2.className = 'trow2';
+    const lbl = document.createElement('span');
+    lbl.className = 'tmeta';
+    lbl.textContent = 'parte a (s):';
+    const off = document.createElement('input');
+    off.type = 'number'; off.step = '0.1'; off.min = '0';
+    off.value = String(Math.round(t.offset * 100) / 100);
+    off.onchange = async function () {
+      let v = parseFloat((off.value || '0').replace(',', '.'));
+      if (!isFinite(v) || v < 0) v = 0;
+      t.offset = v;
+      await saveTrack(t);
+      renderTracks(); drawTimeline();
+    };
+    const here = document.createElement('button');
+    here.className = 'small'; here.textContent = '⇤ Qui';
+    here.title = 'Fa partire questa traccia dalla posizione attuale del cursore';
+    here.onclick = async function () {
+      t.offset = Math.round(currentPlayhead() * 100) / 100;
+      await saveTrack(t);
+      renderTracks(); drawTimeline();
+    };
+    const volLbl = document.createElement('span');
+    volLbl.className = 'tmeta'; volLbl.textContent = 'vol:';
+    const vol = document.createElement('input');
+    vol.type = 'range'; vol.min = '0'; vol.max = '1'; vol.step = '0.05'; vol.value = String(t.volume);
+    vol.oninput = async function () {
+      t.volume = parseFloat(vol.value);
+      if (state.gains && state.gains.has(t.id)) {
+        const g = state.gains.get(t.id);
+        g.gain.value = t.volume;
       }
-    }
-    tr += row([cell(''), cell(''), cell(''), cell(''), cell(''), hdr(`€${totalExpEur.toFixed(2)}`), hdr('TOTAL'), cell(''), cell(''), cell(''), cell('')]); tr += empty();
-  }
+      await saveTrack(t);
+    };
+    const dur = document.createElement('span');
+    dur.className = 'tmeta';
+    dur.textContent = '· durata ' + fmtTime(t.duration);
+    const exp = document.createElement('button');
+    exp.className = 'small'; exp.textContent = '💾 MP3';
+    exp.title = 'Esporta questa traccia in MP3';
+    exp.onclick = function () { exportTrack(t); };
+    const wav = document.createElement('button');
+    wav.className = 'small'; wav.textContent = 'WAV';
+    wav.title = 'Esporta questa traccia in WAV';
+    wav.onclick = async function () {
+      const buf = await getBuffer(t);
+      if (!buf) { alert('Impossibile decodificare la traccia.'); return; }
+      download(encodeWav(buf), safeName(t.name) + '.wav');
+    };
+    const del = document.createElement('button');
+    del.className = 'small danger'; del.textContent = '🗑';
+    del.onclick = async function () {
+      if (!confirm('Eliminare la traccia "' + t.name + '"?')) return;
+      const pos = currentPlayhead();
+      stopPlayback(false);
+      await deleteTrackFull(t.id);
+      state.tracks = state.tracks.filter(function (x) { return x.id !== t.id; });
+      renderTracks(); drawTimeline();
+      state.playhead = pos; updateTransport();
+    };
+    row2.appendChild(lbl); row2.appendChild(off); row2.appendChild(here);
+    row2.appendChild(volLbl); row2.appendChild(vol);
+    row2.appendChild(dur); row2.appendChild(exp); row2.appendChild(wav); row2.appendChild(del);
+    div.appendChild(row2);
 
-  tr += row([hdr('FINANCIAL SUMMARY')]);
-  tr += row([cell('Total Advances (EUR):'), num(totalAdvEur)]);
-  tr += row([cell('Total Expenses (EUR):'), num(totalExpEur)]);
-  tr += row([hdr('Final Balance (EUR):'), num(finalEur)]);
-  const note = finalEur > 0.005 ? 'Amount to be returned to Administration Office' : finalEur < -0.005 ? 'Advance to be reimbursed to the operator' : 'Balance settled';
-  tr += row([cell('Note:'), cell(note)]); tr += empty();
-
-  const curKeys = Object.keys(queues).filter(c => queues[c].length > 0);
-  if (curKeys.length) {
-    tr += row([hdr('CASH BALANCES BY TRANCHE')]);
-    tr += row(['Currency', 'Tranche', 'Rate', 'Remaining'].map(hdr));
-    for (const cur of curKeys) {
-      queues[cur].forEach((t, i) => { tr += row([cell(cur), cell(`Tranche ${i + 1}`), num(t.rate), num(t.remaining.toFixed(4))]); });
-    }
-  }
-
-  const content = `<?xml version="1.0" encoding="UTF-8"?>
-<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" office:version="1.3">
-<office:automatic-styles><style:style style:name="ce-h" style:family="table-cell"><style:text-properties fo:font-weight="bold"/></style:style></office:automatic-styles>
-<office:body><office:spreadsheet><table:table table:name="Expense Report">${tr}</table:table></office:spreadsheet></office:body></office:document-content>`;
-
-  const manifest = `<?xml version="1.0" encoding="UTF-8"?><manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3"><manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.spreadsheet"/><manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/><manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/></manifest:manifest>`;
-  const meta = `<?xml version="1.0" encoding="UTF-8"?><office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" office:version="1.3"><office:meta><dc:title>${xe(rn)}</dc:title></office:meta></office:document-meta>`;
-  const mimetype = 'application/vnd.oasis.opendocument.spreadsheet';
-  const zip = new JSZip();
-  zip.file('mimetype', mimetype, { compression: 'STORE' });
-  zip.folder('META-INF').file('manifest.xml', manifest);
-  zip.file('content.xml', content); zip.file('meta.xml', meta);
-  const blob = await zip.generateAsync({ type: 'blob', mimeType: mimetype, compression: 'DEFLATE', compressionOptions: { level: 6 } });
-  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${rn.replace(/\s+/g, '_')}_expense_report.ods` });
-  a.click(); URL.revokeObjectURL(a.href); showToast('✓ ODS exported');
+    list.appendChild(div);
+  });
+  $('timeTotal').textContent = '/ ' + fmtTime(projectDuration());
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// NEW REPORT / PERSIST
-// ══════════════════════════════════════════════════════════════════════════════
-function newReport() {
-  if (movements.length && !confirm('Start a new report? Current data will be cleared.')) return;
-  movements = []; signatureData = null; missionCountries = ['', '', '']; sigReady = false;
-  ['reportName', 'startDate', 'endDate', 'personName', 'projectName', 'projectId'].forEach(id => document.getElementById(id).value = '');
-  for (let i = 0; i < 3; i++) { document.getElementById('country' + i).value = ''; document.getElementById('ctag' + i).style.display = 'none'; }
-  document.getElementById('sigStatus').textContent = 'Not signed';
-  renderMovements(); autoSave(); showToast('New report started');
+/* ---------- timeline ---------- */
+function drawTimeline() {
+  const cv = $('timeline');
+  if (!cv || !cv.clientWidth) return;
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = Math.max(90, 30 + state.tracks.length * 26 + 14);
+  if (cv.width !== Math.floor(w * dpr) || cv.height !== Math.floor(h * dpr)) {
+    cv.width = Math.floor(w * dpr); cv.height = Math.floor(h * dpr);
+    cv.style.height = h + 'px';
+  }
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, w, h);
+  const total = Math.max(projectDuration(), 10);
+  const x0 = 8, xw = w - 16;
+  const pps = xw / total;
+  // righello
+  c.fillStyle = '#9aa3ab'; c.font = '10px system-ui'; c.textBaseline = 'top';
+  const steps = [1, 2, 5, 10, 15, 30, 60, 120, 300];
+  let step = steps[steps.length - 1];
+  for (const s of steps) { if (total / s <= 12) { step = s; break; } }
+  for (let s = 0; s <= total + 0.001; s += step) {
+    const x = x0 + s * pps;
+    c.fillStyle = '#3a444f'; c.fillRect(x, 14, 1, 6);
+    c.fillStyle = '#9aa3ab'; c.fillText(fmtTime(s), x + 2, 2);
+  }
+  // tracce
+  state.tracks.forEach(function (t, idx) {
+    const y = 30 + idx * 26;
+    const x = x0 + t.offset * pps;
+    const bw = Math.max(3, t.duration * pps);
+    c.fillStyle = t.muted ? '#3a444f' : PALETTE[idx % PALETTE.length];
+    c.globalAlpha = t.muted ? 0.45 : 0.85;
+    c.fillRect(x, y, bw, 18);
+    c.globalAlpha = 1;
+    c.fillStyle = '#0d1116';
+    c.font = '10px system-ui';
+    const label = (t.kind === 'rec' ? '🎙 ' : '🎵 ') + t.name;
+    c.save();
+    c.beginPath(); c.rect(x + 2, y, bw - 4, 18); c.clip();
+    c.fillText(label, x + 4, y + 4);
+    c.restore();
+  });
+  // cursore
+  const px = x0 + currentPlayhead() * pps;
+  c.strokeStyle = state.recording ? '#ff4d5e' : '#ffd66b';
+  c.lineWidth = 2;
+  c.beginPath(); c.moveTo(px, 12); c.lineTo(px, h - 4); c.stroke();
+}
+function timelineTap(ev) {
+  const cv = $('timeline');
+  const rect = cv.getBoundingClientRect();
+  const x = (ev.clientX || (ev.touches && ev.touches[0] && ev.touches[0].clientX) || 0) - rect.left;
+  const total = Math.max(projectDuration(), 10);
+  const pps = (cv.clientWidth - 16) / total;
+  let t = (x - 8) / pps;
+  if (t < 0) t = 0; if (t > total) t = total;
+  if (state.recording) return; // durante la registrazione non si sposta il cursore
+  if (state.playing) { stopPlayback(false); startPlayback(t); }
+  else { state.playhead = t; $('timeNow').textContent = fmtTime(t); drawTimeline(); }
 }
 
-function autoSave() {
+/* ---------- trasporto UI ---------- */
+function updateTransport() {
+  $('btnPlay').textContent = state.playing ? '⏸' : '▶';
+  $('btnRec').textContent = state.recording ? '■ STOP REC' : '● REC';
+  $('btnRec').classList.toggle('on', state.recording);
+  $('timeNow').textContent = fmtTime(currentPlayhead());
+  $('timeTotal').textContent = '/ ' + fmtTime(projectDuration());
+}
+
+/* ---------- export ---------- */
+async function exportMix(useMp3) {
+  status('Preparazione del missaggio…');
+  await nextPaint();
   try {
-    localStorage.setItem('expenseReportState', JSON.stringify({
-      reportName: document.getElementById('reportName').value, startDate: document.getElementById('startDate').value,
-      endDate: document.getElementById('endDate').value, personName: document.getElementById('personName').value,
-      projectName: document.getElementById('projectName').value, projectId: document.getElementById('projectId').value,
-      movements, signatureData, missionCountries
-    }));
-  } catch (e) { }
-}
-
-function loadState() {
-  loadApiKey();
-  try {
-    const raw = localStorage.getItem('expenseReportState'); if (!raw) return;
-    const s = JSON.parse(raw);
-    ['reportName', 'startDate', 'endDate', 'personName', 'projectName', 'projectId'].forEach(id => { if (s[id] !== undefined) document.getElementById(id).value = s[id]; });
-    // Migrate old format
-    if (s.expenses && !s.movements) {
-      movements = s.expenses.map(e => { if (!e.receipts) { e.receipts = e.receipt ? [e.receipt] : []; delete e.receipt; } e.type = e.type || 'expense'; e.paymentMethod = e.paymentMethod || 'Cash'; e.rateOverride = e.rateOverride || false; return e; });
+    const buf = await mixdown();
+    if (!buf) { status(''); alert('Nessuna traccia attiva da esportare (tutte in mute o progetto vuoto).'); return; }
+    const base = safeName(state.current.name) + ' - missaggio';
+    if (useMp3) {
+      status('Encoding MP3 192 kbps… (alla prima esportazione scarica l\'encoder, poi resta in cache)');
+      await nextPaint();
+      try {
+        const blob = await encodeMp3(buf, 192);
+        download(blob, base + '.mp3');
+        status('Missaggio esportato ✓');
+      } catch (e) {
+        status('');
+        if (confirm('Encoder MP3 non raggiungibile (serve la connessione la prima volta). Esportare il missaggio in WAV?')) {
+          download(encodeWav(buf), base + '.wav');
+        }
+      }
     } else {
-      movements = s.movements || [];
-      movements.forEach(m => { if (!m.receipts) m.receipts = []; if (m.type === 'expense') { m.paymentMethod = m.paymentMethod || 'Cash'; m.rateOverride = m.rateOverride || false; } });
+      download(encodeWav(buf), base + '.wav');
+      status('Missaggio WAV esportato ✓');
     }
-    signatureData = s.signatureData || null;
-    if (signatureData) document.getElementById('sigStatus').textContent = '✓ Signature saved';
-    missionCountries = s.missionCountries || ['', '', ''];
-    missionCountries.forEach((n, i) => { if (n) { document.getElementById('country' + i).value = n; updateCountry(i, n); } });
-    renderMovements();
-  } catch (e) { console.warn(e); }
+  } catch (e) {
+    status('');
+    alert('Errore durante l\'export: ' + e);
+  }
+}
+async function exportTrack(t) {
+  status('Esportazione traccia "' + t.name + '"…');
+  await nextPaint();
+  try {
+    const buf = await getBuffer(t);
+    if (!buf) { status(''); alert('Impossibile decodificare la traccia.'); return; }
+    const base = safeName(state.current.name) + ' - ' + safeName(t.name);
+    status('Encoding MP3 192 kbps…');
+    await nextPaint();
+    try {
+      const blob = await encodeMp3(buf, 192);
+      download(blob, base + '.mp3');
+      status('Traccia esportata ✓');
+    } catch (e) {
+      status('');
+      if (confirm('Encoder MP3 non raggiungibile (serve la connessione la prima volta). Esportare in WAV?')) {
+        download(encodeWav(buf), base + '.wav');
+      }
+    }
+  } catch (e) {
+    status('');
+    alert('Errore durante l\'export: ' + e);
+  }
 }
 
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
-</script>
-<script>
-if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+/* ---------- import ---------- */
+async function importFiles(files) {
+  if (!files || !files.length) return;
+  ensureAudio();
+  let n = 0;
+  for (const file of files) {
+    try {
+      const ab = await file.arrayBuffer();
+      const buf = await actx.decodeAudioData(ab);
+      const t = {
+        id: uid(), projectId: state.current.id,
+        name: file.name.replace(/\.[^.]+$/, ''),
+        kind: 'import', blob: file, mime: file.type,
+        duration: buf.duration,
+        offset: 0, muted: false, volume: 1, createdAt: Date.now()
+      };
+      state.buffers.set(t.id, buf);
+      await saveTrack(t);
+      state.tracks.push(t);
+      n++;
+    } catch (e) {
+      alert('Impossibile importare "' + file.name + '": formato non riconosciuto.');
+    }
+  }
+  state.tracks.sort(function (a, b) { return a.offset - b.offset || a.createdAt - b.createdAt; });
+  renderTracks();
+  drawTimeline();
+  if (n) status(n + ' file importati ✓ — tocca “⇤ Qui” su una traccia per spostarla al cursore.');
+}
+
+/* ---------- avvio ---------- */
+function goHome() {
+  stopPlayback(false);
+  if (state.recording) stopRecording();
+  state.current = null;
+  state.tracks = [];
+  $('viewProject').classList.add('hidden');
+  $('viewProjects').classList.remove('hidden');
+  $('appTitle').textContent = '🎛 Studio Multitraccia';
+  loadProjects().then(renderProjects);
+  status('');
+}
+async function init() {
+  await openDB();
+  if (memoryMode) {
+    banner('⚠️ In questa finestra di anteprima il salvataggio dei progetti non è disponibile (e il microfono può essere bloccato). Scarica il file e pubblicalo, es. su GitHub Pages, per l\'uso completo.');
+  }
+  await loadProjects();
+  renderProjects();
+
+  $('btnHome').onclick = goHome;
+  $('btnNewProject').onclick = createProject;
+  $('newProjName').addEventListener('keydown', function (e) { if (e.key === 'Enter') createProject(); });
+  $('btnPlay').onclick = function () {
+    if (state.recording) return;
+    if (state.playing) stopPlayback(true);
+    else startPlayback(currentPlayhead());
+    drawTimeline();
+  };
+  $('btnRec').onclick = function () { if (state.recording) stopRecording(); else startRecording(); };
+  $('btnImport').onclick = function () { $('fileInput').click(); };
+  $('fileInput').onchange = function () { importFiles(Array.prototype.slice.call($('fileInput').files)); $('fileInput').value = ''; };
+  $('btnExportMixMp3').onclick = function () { exportMix(true); };
+  $('btnExportMixWav').onclick = function () { exportMix(false); };
+
+  const cv = $('timeline');
+  cv.addEventListener('pointerdown', timelineTap);
+  window.addEventListener('resize', drawTimeline);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && state.playing && !state.recording) stopPlayback(true);
+  });
+  drawTimeline();
+}
+init();
 </script>
 </body>
 </html>
