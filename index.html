@@ -34,6 +34,7 @@
     padding: 10px; min-height: 44px; min-width: 0;
   }
   input[type="range"] { width: 90px; }
+  input[type="checkbox"] { width: 20px; height: 20px; vertical-align: middle; }
   .row { display: flex; gap: 8px; align-items: center; margin: 10px 0; flex-wrap: wrap; }
   .row > input { flex: 1; }
   .hidden { display: none !important; }
@@ -97,7 +98,7 @@
     <ul>
       <li>Crea un progetto, poi importaci i file audio dalla memoria del telefono (pulsante 📂 dentro il progetto).</li>
       <li>Ogni traccia ha un <b>tempo di partenza</b> che decidi tu: scrivilo in secondi, oppure posiziona il cursore sulla timeline e premi “⇤ Qui”.</li>
-      <li>Con le <b>cuffie</b> collegate, premi ● REC: il missaggio riparte dal cursore e la tua voce viene registrata come nuova traccia, già piazzata al punto giusto.</li>
+      <li>Con le <b>cuffie</b> collegate, premi ● REC: il missaggio riparte dal cursore e la tua voce viene registrata come nuova traccia, già piazzata al punto giusto. Registra con filtri disattivati (qualità massima); se registri <b>senza cuffie</b>, spunta la casella “Modalità speaker”.</li>
       <li>Esporta il missaggio completo o le singole tracce in <b>MP3 192 kbps</b> (o WAV). I progetti restano salvati nel telefono.</li>
       <li>Per usare l'app serve l'indirizzo pubblico (es. GitHub Pages): il microfono funziona solo via HTTPS.</li>
     </ul>
@@ -111,6 +112,7 @@
     <button id="btnPlay" class="primary">▶</button>
     <button id="btnRec">● REC</button>
   </div>
+  <label class="hint"><input type="checkbox" id="chkSpeaker"> Modalità speaker (anti-eco) — attivala solo se registri <b>senza cuffie</b></label>
   <canvas id="timeline"></canvas>
   <p class="hint">Tocca la timeline per spostare il cursore. Il REC registra a partire dal cursore.</p>
 
@@ -357,9 +359,10 @@ async function startRecording() {
     return;
   }
   let stream;
+  const speakerMode = $('chkSpeaker') && $('chkSpeaker').checked;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: false }
+      audio: { echoCancellation: speakerMode, noiseSuppression: false, autoGainControl: false }
     });
   } catch (e) {
     alert('Impossibile accedere al microfono: ' + (e && e.message ? e.message : e) +
@@ -371,7 +374,9 @@ async function startRecording() {
   const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
   for (const m of candidates) { if (MediaRecorder.isTypeSupported(m)) { mime = m; break; } }
   try {
-    mediaRec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    mediaRec = mime
+      ? new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 256000 })
+      : new MediaRecorder(stream, { audioBitsPerSecond: 256000 });
   } catch (e) {
     alert('Registrazione non supportata: ' + e);
     stream.getTracks().forEach(function (t) { t.stop(); });
@@ -919,6 +924,9 @@ async function init() {
   const cv = $('timeline');
   cv.addEventListener('pointerdown', timelineTap);
   window.addEventListener('resize', drawTimeline);
+  const chk = $('chkSpeaker');
+  metaGet('speakerMode').then(function (v) { chk.checked = v === true; });
+  chk.onchange = function () { metaSet('speakerMode', chk.checked); };
   document.addEventListener('visibilitychange', function () {
     if (document.hidden && state.playing && !state.recording) stopPlayback(true);
   });
